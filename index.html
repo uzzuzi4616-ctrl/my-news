@@ -1,173 +1,49 @@
-<!doctype html>
-<html lang="ko">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>돈벌쥐 - AI 뉴스 카드 생성기</title>
-<link rel="preconnect" href="https://fonts.googleapis.com">
-<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
-<style>
-:root{--blue:#2563eb;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f3f6fb}
-*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,system-ui,sans-serif}
-header{background:#fff;border-bottom:1px solid var(--line);padding:17px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:5}
-.brand{font-size:21px;font-weight:900;letter-spacing:-.7px}.brand span{color:var(--blue)}.tag{font-size:12px;background:#eff6ff;color:#1d4ed8;padding:7px 10px;border-radius:999px;font-weight:700}
-main{max-width:1180px;margin:26px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr);gap:22px;align-items:start}
-.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 5px 22px #0f172a08}
-h1{font-size:25px;margin:0 0 7px;letter-spacing:-.7px}h2{font-size:17px;margin:0 0 16px}.sub{font-size:13px;line-height:1.65;color:var(--muted);margin:0 0 20px}
-.section{padding:18px 0;border-top:1px solid #eef0f4}.section:first-of-type{border-top:0;padding-top:0}
-label{display:block;font-size:13px;font-weight:800;margin:0 0 8px}input[type=text],input[type=url],textarea,select{width:100%;border:1px solid #d7dce5;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;outline:none;background:#fff}
-input:focus,textarea:focus,select:focus{border-color:#7aa5ff;box-shadow:0 0 0 3px #2563eb14}textarea{resize:vertical;min-height:130px;line-height:1.6}
-.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px}
-button{border:0;border-radius:10px;padding:11px 14px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;transition:.15s}
-button:hover{filter:brightness(.97);transform:translateY(-1px)}.primary{background:var(--blue);color:white}.secondary{background:#eef2ff;color:#1d4ed8}.plain{background:#f3f4f6;color:#374151}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}.actions button{flex:1}
-.status{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5}.status.show{display:block}.status.info{background:#eff6ff;color:#1d4ed8}.status.error{background:#fff1f2;color:#be123c}.status.ok{background:#ecfdf5;color:#047857}
-.preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.preview-head h2{margin:0}.preview-note{font-size:12px;color:var(--muted)}
-#newsCard{width:100%;aspect-ratio:4/5;max-width:470px;margin:0 auto;background:#fff;position:relative;overflow:hidden;border-radius:4px;display:flex;flex-direction:column;box-shadow:0 10px 30px #11182712}
-#cardImage{height:44%;width:100%;object-fit:cover;background:linear-gradient(135deg,#dbeafe,#fef3c7);display:block}
-.cardContent{padding:25px 25px 19px;display:flex;flex:1;min-height:0;flex-direction:column;position:relative}
-.cardLabel{display:inline-flex;align-self:flex-start;background:var(--blue);color:white;padding:6px 10px;border-radius:5px;font-size:11px;font-weight:900;letter-spacing:.4px;margin-bottom:12px}
-#cardTitle{font-size:clamp(20px,2.1vw,30px);font-weight:900;line-height:1.28;letter-spacing:-.9px;margin:0 0 12px;overflow-wrap:anywhere}
-#cardSummary{font-size:clamp(12px,1.2vw,15px);line-height:1.65;color:#374151;white-space:pre-line;overflow:hidden}
-.cardFooter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:17px;font-size:10px;color:#6b7280;font-weight:700}
-.cardLogo{font-weight:900;color:#111827;font-size:12px}.cardLogo span{color:var(--blue)}
-.smallcontrols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
-footer{text-align:center;color:#9ca3af;font-size:11px;padding:5px 16px 30px}
-@media(max-width:850px){main{grid-template-columns:1fr}.panel{padding:18px}#newsCard{max-width:500px}.tag{display:none}}
-@media(max-width:480px){.row,.smallcontrols{grid-template-columns:1fr}header{padding:14px 16px}h1{font-size:22px}}
-</style>
-</head>
-<body>
-<header><div class="brand">🐭 돈벌쥐 <span>AI 뉴스 카드</span></div><div class="tag">기사 입력 → AI 요약 → 카드 저장</div></header>
-<main>
-<section class="panel">
-  <h1>AI 뉴스 카드 생성기</h1>
-  <p class="sub">기사 내용을 입력하면 핵심을 요약하고, SNS에 올릴 수 있는 뉴스 카드로 만들어 줍니다. 기존 카드 편집·이미지 저장 기능을 한 화면에 모았습니다.</p>
+```javascript
+import OpenAI from "openai";
 
-  <div class="section">
-    <h2>1. 기사 가져오기</h2>
-    <label for="articleUrl">기사 원문 URL (출처 표시용)</label>
-    <input id="articleUrl" type="url" placeholder="https://news.example.com/article">
-    <p class="hint">브라우저 보안(CORS) 때문에 URL만으로 모든 언론사 본문을 자동으로 읽을 수는 없습니다. 기사 본문을 아래에 붙여 넣어 주세요.</p>
-    <label for="articleText" style="margin-top:14px">기사 본문</label>
-    <textarea id="articleText" placeholder="뉴스 기사 본문을 여기에 붙여 넣으세요. 제목과 본문을 함께 넣어도 됩니다."></textarea>
-    <div class="row" style="margin-top:12px">
-      <div><label for="category">분야</label><select id="category"><option>오늘의 뉴스</option><option>경제</option><option>AI·테크</option><option>정치</option><option>사회</option><option>국제</option><option>생활·문화</option><option>부동산</option></select></div>
-      <div><label for="tone">요약 스타일</label><select id="tone"><option value="쉽고 간결하게">쉽고 간결하게</option><option value="핵심 숫자 중심으로">핵심 숫자 중심으로</option><option value="초보자도 이해하기 쉽게">초보자도 이해하기 쉽게</option><option value="중립적인 뉴스 문체로">중립적인 뉴스 문체로</option></select></div>
-    </div>
-    <div class="actions"><button class="primary" id="summarizeBtn">✨ AI로 요약하고 카드 만들기</button><button class="plain" id="sampleBtn">예시 기사 넣기</button></div>
-    <div id="status" class="status" role="status"></div>
-  </div>
+export default async function handler(req, res) {
+  // POST 요청만 허용
+  if (req.method !== "POST") {
+    return res.status(405).json({
+      error: "POST 요청만 허용됩니다."
+    });
+  }
 
-  <div class="section">
-    <h2>2. 카드 문구 편집</h2>
-    <label for="titleInput">카드 제목</label><input id="titleInput" type="text" maxlength="100" placeholder="뉴스 핵심 제목">
-    <label for="summaryInput" style="margin-top:13px">핵심 요약</label><textarea id="summaryInput" style="min-height:105px" maxlength="600" placeholder="핵심 내용 2~4문장"></textarea>
-    <div class="row" style="margin-top:12px">
-      <div><label for="dateInput">날짜</label><input id="dateInput" type="text"></div>
-      <div><label for="badgeInput">카드 라벨</label><input id="badgeInput" type="text" maxlength="18" value="오늘의 뉴스"></div>
-    </div>
-  </div>
+  // API 키 확인
+  if (!process.env.OPENAI_API_KEY) {
+    return res.status(500).json({
+      error: "OPENAI_API_KEY 환경 변수가 설정되지 않았습니다."
+    });
+  }
 
-  <div class="section">
-    <h2>3. 디자인 설정</h2>
-    <label for="imageInput">카드 상단 이미지</label><input id="imageInput" type="file" accept="image/*">
-    <div class="row" style="margin-top:12px">
-      <div><label for="ratioInput">카드 비율</label><select id="ratioInput"><option value="4/5">세로형 4:5 (인스타그램)</option><option value="1/1">정사각형 1:1</option><option value="16/9">가로형 16:9</option></select></div>
-      <div><label for="colorInput">포인트 색상</label><input id="colorInput" type="color" value="#2563eb" style="height:42px;padding:4px"></div>
-    </div>
-    <div class="actions"><button class="secondary" id="resetBtn">디자인 초기화</button><button class="plain" id="clearBtn">문구 비우기</button></div>
-  </div>
-</section>
+  try {
+    const { text, category, tone } = req.body || {};
 
-<section class="panel">
-  <div class="preview-head"><h2>카드 미리보기</h2><span class="preview-note">내용을 수정하면 자동 반영</span></div>
-  <div id="newsCard">
-    <img id="cardImage" alt="뉴스 카드 이미지">
-    <div class="cardContent">
-      <span class="cardLabel" id="cardBadge">오늘의 뉴스</span>
-      <h3 id="cardTitle">AI 뉴스 카드 제목이 여기에 표시됩니다</h3>
-      <div id="cardSummary">기사 내용을 입력하고 AI 요약 버튼을 눌러 보세요. 직접 문구를 편집할 수도 있습니다.</div>
-      <div class="cardFooter"><span class="cardLogo">🐭 돈벌쥐<span> NEWS</span></span><span id="cardDate"></span></div>
-    </div>
-  </div>
-  <div class="smallcontrols">
-    <button class="primary" id="downloadBtn">⬇ PNG 이미지 저장</button>
-    <button class="secondary" id="copyBtn">제목·요약 복사</button>
-  </div>
-  <p class="hint">※ 카드에 사용하는 사진과 기사 내용의 저작권·이용 조건을 확인하세요. 요약 결과는 게시 전에 원문과 대조하는 것이 좋습니다.</p>
-</section>
-</main>
-<footer>돈벌쥐 AI 뉴스 카드 생성기 · AI 요약은 서버 설정 후 활성화됩니다.</footer>
-<script>
-const $ = id => document.getElementById(id);
-const defaultSummary = '기사 내용을 입력하고 AI 요약 버튼을 눌러 보세요. 직접 문구를 편집할 수도 있습니다.';
-function today(){return new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()).replace(/\. /g,'.').replace('.','.').replace(/\.$/,'');}
-$('dateInput').value = today(); $('cardDate').textContent = $('dateInput').value;
-function sync(){
-  $('cardTitle').textContent = $('titleInput').value.trim() || 'AI 뉴스 카드 제목이 여기에 표시됩니다';
-  $('cardSummary').textContent = $('summaryInput').value.trim() || defaultSummary;
-  $('cardBadge').textContent = $('badgeInput').value.trim() || $('category').value;
-  $('cardDate').textContent = $('dateInput').value;
-  document.documentElement.style.setProperty('--blue',$('colorInput').value);
-  $('newsCard').style.aspectRatio = $('ratioInput').value;
-}
-['titleInput','summaryInput','badgeInput','dateInput','colorInput','ratioInput'].forEach(id=>$(id).addEventListener('input',sync));
-$('category').addEventListener('change',()=>{if(!$('badgeInput').value.trim()||$('badgeInput').value==='오늘의 뉴스')$('badgeInput').value=$('category').value;sync();});
-function showStatus(message,type='info'){const el=$('status');el.textContent=message;el.className='status show '+type;}
-function fallbackSummary(text){
-  const clean=text.replace(/\s+/g,' ').trim();
-  if(!clean) return {title:'기사 본문을 입력해 주세요',summary:'기사 본문을 입력한 뒤 다시 시도해 주세요.'};
-  const sentences=clean.split(/(?<=[.!?。])\s+/).filter(s=>s.length>12);
-  const picked=(sentences.length?sentences:[clean]).slice(0,3).join('\n');
-  return {title:(sentences[0]||clean).slice(0,48)+( (sentences[0]||clean).length>48?'…':''),summary:picked.slice(0,360)};
-}
-$('summarizeBtn').addEventListener('click',async()=>{
- const text=$('articleText').value.trim();
- if(text.length<40){showStatus('기사 본문을 40자 이상 붙여 넣어 주세요. URL만 입력한 경우에는 본문을 직접 복사해야 합니다.','error');return;}
- const btn=$('summarizeBtn');btn.disabled=true;btn.textContent='⏳ 기사를 읽고 요약하는 중…';
- showStatus('기사 내용을 정리하고 있습니다. 잠시만 기다려 주세요.');
- try{
-   const response=await fetch('/api/summarize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,category:$('category').value,tone:$('tone').value})});
-   if(!response.ok) throw new Error((await response.json().catch(()=>({}))).error||'AI 서버에 연결할 수 없습니다.');
-   const data=await response.json();
-   $('titleInput').value=data.title||'오늘의 주요 뉴스';
-   $('summaryInput').value=Array.isArray(data.bullets)?data.bullets.map(x=>'• '+x).join('\n'):data.summary||'';
-   $('badgeInput').value=$('category').value;sync();
-   showStatus('AI 요약이 완료되었습니다. 제목과 요약을 확인한 뒤 PNG로 저장하세요.','ok');
- }catch(err){
-   const data=fallbackSummary(text);
-   $('titleInput').value=data.title;$('summaryInput').value=data.summary;sync();
-   showStatus('AI 서버 연결에 실패해 브라우저의 간단 요약으로 채웠습니다. 실제 AI 요약을 사용하려면 안내 파일대로 서버를 실행하세요. ('+err.message+')','error');
- }finally{btn.disabled=false;btn.textContent='✨ AI로 요약하고 카드 만들기';}
-});
-$('sampleBtn').addEventListener('click',()=>{
- $('articleText').value='국내 여러 기업이 업무 효율을 높이기 위해 인공지능 도구 도입을 확대하고 있다. 전문가들은 반복 업무를 자동화하면 생산성을 높일 수 있지만, 결과를 검토하고 개인정보를 보호하는 절차가 중요하다고 강조했다. 기업들은 직원 교육과 내부 보안 기준 마련도 함께 추진하고 있다. 도입 효과는 업무 종류와 조직의 준비 수준에 따라 달라질 수 있어 충분한 검토가 필요하다.';
- $('articleUrl').value='https://example.com/sample-news';$('category').value='AI·테크';$('badgeInput').value='AI·테크';sync();
- showStatus('예시 문장을 넣었습니다. AI 요약 버튼을 눌러 테스트하세요.','info');
-});
-$('imageInput').addEventListener('change',e=>{
- const file=e.target.files&&e.target.files[0];if(!file)return;
- if(!file.type.startsWith('image/')){showStatus('이미지 파일을 선택해 주세요.','error');return;}
- const reader=new FileReader();reader.onload=()=>{$('cardImage').src=reader.result;$('cardImage').style.display='block';};reader.readAsDataURL(file);
-});
-$('resetBtn').addEventListener('click',()=>{
- $('colorInput').value='#2563eb';$('ratioInput').value='4/5';$('badgeInput').value='오늘의 뉴스';$('imageInput').value='';$('cardImage').removeAttribute('src');$('cardImage').style.display='block';sync();showStatus('디자인 설정을 초기화했습니다.','ok');
-});
-$('clearBtn').addEventListener('click',()=>{$('titleInput').value='';$('summaryInput').value='';sync();});
-$('downloadBtn').addEventListener('click',async()=>{
- if(!window.html2canvas){showStatus('이미지 저장 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.','error');return;}
- const btn=$('downloadBtn');btn.disabled=true;btn.textContent='이미지 생성 중…';
- try{const canvas=await html2canvas($('newsCard'),{scale:2,backgroundColor:'#ffffff',useCORS:true});const a=document.createElement('a');a.download='돈벌쥐_뉴스카드.png';a.href=canvas.toDataURL('image/png');a.click();showStatus('PNG 이미지 저장이 완료되었습니다.','ok');}
- catch(e){showStatus('이미지 저장에 실패했습니다. 이미지 파일을 다시 선택해 보세요.','error');}
- finally{btn.disabled=false;btn.textContent='⬇ PNG 이미지 저장';}
-});
-$('copyBtn').addEventListener('click',async()=>{
- const text=$('titleInput').value+'\n\n'+$('summaryInput').value+'\n\n출처: '+($('articleUrl').value||'원문 URL 미입력');
- try{await navigator.clipboard.writeText(text);showStatus('제목과 요약을 복사했습니다.','ok');}
- catch(e){showStatus('복사 권한이 없어 복사하지 못했습니다. 브라우저 권한을 확인해 주세요.','error');}
-});
-sync();
-</script>
-</body>
-</html>
+    // 뉴스 본문 확인
+    if (!text || typeof text !== "string" || !text.trim()) {
+      return res.status(400).json({
+        error: "요약할 뉴스 본문을 입력해 주세요."
+      });
+    }
+
+    // HTML에서 선택하는 요약 스타일 4가지
+    const styles = {
+      "쉽고 간결하게":
+        "핵심만 짧고 명확하게 요약하세요. 불필요한 설명은 줄이고 누구나 빠르게 이해할 수 있게 작성하세요.",
+
+      "핵심 숫자 중심으로":
+        "금액, 비율, 날짜, 통계 등 중요한 숫자를 중심으로 요약하세요. 숫자가 의미하는 바를 설명하고 기사에 없는 숫자는 만들지 마세요.",
+
+      "초보자도 이해하기 쉽게":
+        "전문용어와 어려운 표현을 쉬운 말로 풀어서 설명하세요. 필요한 경우 배경과 맥락도 덧붙여 뉴스에 익숙하지 않은 사람도 이해할 수 있게 작성하세요.",
+
+      "중립적인 뉴스 문체로":
+        "감정적이거나 과장된 표현을 사용하지 말고 확인된 사실을 중심으로 객관적이고 중립적으로 요약하세요."
+    };
+
+    // 선택한 스타일에 맞는 지침 적용
+    const selectedStyle =
+      styles[tone] || styles["쉽고 간결하게"];
+
+    // Ope
+```
