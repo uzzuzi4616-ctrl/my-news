@@ -5,6 +5,9 @@ dotenv.config();
 
 const app = express();
 const PORT = process.env.PORT || 3000;
+const client = new OpenAI({
+apiKey: process.env.OPENAI_API_KEY
+});
 
 app.use(express.json({ limit: "1mb" }));
 
