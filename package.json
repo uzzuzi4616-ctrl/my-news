@@ -1,1 +1,10 @@
-서버가 JSON 형식으로 응답하지 않았습니다. HTTP 상태 코드: 500. Vercel 서버 로그를 확인해 주세요.
+{
+"name": "my-news",
+"version": "1.0.0",
+"private": true,
+"description": "돈벌쥐 AI 뉴스 카드 생성기",
+"type": "module",
+"dependencies": {
+"@google/genai": "^1.0.0"
+}
+}
