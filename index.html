@@ -5,15 +5,12 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>돈벌쥐 - AI 뉴스 카드 생성기</title>
     
-    <!-- 구글 최신 가독성 폰트 및 아이콘 로드 -->
+    <!-- 구글 프리미엄 웹폰트 로드 -->
     <link href="https://googleapis.com" rel="stylesheet">
+    <!-- 고화질 이미지 저장을 도와주는 html2canvas 라이브러리 내장 -->
     <script src="https://cloudflare.com"></script>
     
     <style>
-
-        
-
-        
         body {
             font-family: 'Pretendard', sans-serif;
             background-color: #f3f4f6;
@@ -25,7 +22,7 @@
             color: #1f2937;
         }
 
-        /* 메인 컨테이너 박스 (유튜브 스타일로 슬림하고 깔끔하게) */
+        /* 메인 컨테이너 박스 */
         .main-container {
             width: 100%;
             max-width: 600px;
@@ -34,6 +31,7 @@
             padding: 35px;
             box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
             box-sizing: border-box;
+            margin-bottom: 30px;
         }
 
         /* 로고 구역 */
@@ -120,7 +118,7 @@
             background-color: #e5e7eb;
         }
 
-        /* 2단계: 카드 모양 카드형 라디오 버튼 */
+        /* 2단계: 카드 모양 고르기 그룹 */
         .card-shape-group {
             display: flex;
             gap: 12px;
@@ -147,10 +145,9 @@
             border-color: #2563eb;
             background-color: #eff6ff;
         }
-        /* 미니 형태 아이콘 프리뷰 */
+        
         .shape-icon {
             border: 2px solid #9ca3af;
-            border-radius: 4px;
             background-color: #fff;
         }
         .shape-box.active .shape-icon {
@@ -170,16 +167,16 @@
             color: #6b7280;
         }
 
-        /* 입력 폼 그리드 시스템 */
+        /* 3단계: 디자인 상세 옵션 */
         .input-item {
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         .input-item label {
             display: block;
             font-size: 13px;
             font-weight: 700;
             color: #4b5563;
-            margin-bottom: 6px;
+            margin-bottom: 8px;
         }
         .input-item input[type="text"],
         .input-item select,
@@ -203,10 +200,30 @@
             accent-color: #2563eb;
             cursor: pointer;
         }
+        .option-buttons {
+            display: flex;
+            gap: 6px;
+        }
+        .option-buttons button {
+            flex: 1;
+            padding: 10px;
+            background: #f3f4f6;
+            border: 1px solid #dee2e6;
+            border-radius: 8px;
+            font-size: 13px;
+            font-weight: 600;
+            color: #4b5563;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+        .option-buttons button.active {
+            background: #2563eb;
+            color: #ffffff;
+            border-color: #2563eb;
+        }
 
-        /* 🎬 실시간 라이브 미리보기 스튜디오 스페이스 */
+        /* 실시간 미리보기 구역 */
         .preview-area-wrapper {
-            margin-top: 40px;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -217,12 +234,12 @@
             font-weight: 700;
             color: #4b5563;
             margin-bottom: 12px;
-            align-self: flex-start;
             max-width: 540px;
             width: 100%;
+            text-align: left;
         }
 
-        /* 정사각형 카드뉴스 디자인 본체 */
+        /* 뉴스 표지 카드 본체 */
         .insta-card {
             width: 540px;
             height: 540px;
@@ -239,7 +256,7 @@
             box-shadow: 0 15px 35px rgba(0,0,0,0.06);
             text-align: left;
             border-radius: 12px;
-            transition: all 0.3s ease;
+            transition: width 0.2s, height 0.2s;
         }
 
         /* 가독성 필터 스크린 */
@@ -255,7 +272,7 @@
             pointer-events: none;
         }
 
-        /* 콘텐츠 영역 레이어 탑 레이트 */
+        /* 최상위 텍스트 콘텐츠 영역 */
         .card-content-area {
             position: relative;
             z-index: 2;
@@ -315,7 +332,7 @@
             font-weight: 600;
         }
 
-        /* 최종 저장 실행 처리 장치 버튼 */
+        /* 최종 이미지 파일 저장 버튼 */
         .submit-download-btn {
             width: 540px;
             background-color: #111827;
@@ -338,152 +355,15 @@
 </head>
 <body>
 
-    <!-- 유튜브 형태 통합 레이아웃 킷트 스타트 -->
+    <!-- 메인 관리 폼 스페이스 -->
     <div class="main-container">
         
-        <!-- 상단 헤더 로고 브랜딩 구역 -->
         <div class="logo-area">
             <h1 class="logo-title">돈벌쥐 <span>🐭</span></h1>
             <div class="logo-sub">- 김나무 대표 -</div>
-        </div>
 
-        <!-- [STEP 1] 데이터 클립보드 인터페이스 제어 모듈 -->
-        <div class="step-section">
-            <div class="step-title">
-                <span class="step-number">1</span>
-                내용 입력 제어 시스템
-            </div>
-            <div class="top-btn-group">
-                <button class="action-btn btn-blue" id="pasteBtn">📋 복사한 내용 붙여넣기</button>
-                <button class="action-btn btn-gray" id="clearBtn">🗑️ 지우기</button>
-            </div>
-        </div>
 <script>
-📸 완성형 기사 표지미리보기 이미지 저장하기
-const targetCard = document.getElementById('targetCard');
-const displayTitle = document.getElementById('displayTitle');
-const displayContent = document.getElementById('displayContent');
-const badgeContainer = document.getElementById('badgeContainer');
-const cardOverlay = document.getElementById('cardOverlay');
-// 1단계 클립보드 제어 기법 바인딩
-document.getElementById('pasteBtn').addEventListener('click', async function() {
-try {
-const text = await navigator.clipboard.readText();
-document.getElementById('keywordInput').value = text.substring(0, 20);
-document.getElementById('contentInput').value = text;
-displayTitle.innerText = text.substring(0, 20);
-displayContent.innerText = text;
-} catch (err) {
-alert('브라우저 보안으로 인해 자동 붙여넣기가 차단되었습니다. 아래 기사 제목창에 직접 붙여넣어 주세요!');
-}
-});
-document.getElementById('clearBtn').addEventListener('click', function() {
-document.getElementById('keywordInput').value = '';
-document.getElementById('contentInput').value = '';
-displayTitle.innerText = '';
-displayContent.innerText = '';
-targetCard.style.backgroundImage = 'none';
-cardOverlay.style.backgroundColor = 'rgba(255,255,255,1)';
-document.getElementById('opacitySlider').value = 0;
-document.getElementById('imageUpload').value = '';
-});
-// 2단계 가로/정사각형/세로 비율 가변 변환 연동 시스템
-const shapeBoxes = document.querySelectorAll('.shape-box');
-shapeBoxes.forEach(function(box) {
-box.addEventListener('click', function() {
-const ratio = this.getAttribute('data-ratio');
-if (ratio === 'horizontal') {
-targetCard.style.width = '540px';
-targetCard.style.height = '303px'; // 16:9 표준 스펙
-} else if (ratio === 'square') {
-targetCard.style.width = '540px';
-targetCard.style.height = '540px'; // 1:1 표준 스펙
-} else if (ratio === 'vertical') {
-targetCard.style.width = '303px';
-targetCard.style.height = '540px'; // 9:16 표준 스펙
-}
-shapeBoxes.forEach(function(b) { b.classList.remove('active'); });
-this.classList.add('active');
-});
-});
-// 3단계 상세 타이핑 입력 동기화 처리 장치
-document.getElementById('keywordInput').addEventListener('input', function(e) {
-if(displayTitle) displayTitle.innerText = e.target.value;
-});
-document.getElementById('contentInput').addEventListener('input', function(e) {
-if(displayContent) displayContent.innerText = e.target.value;
-});
-// 배경 파일 리더 트랙 구현 (공백 특수 가공)
-document.getElementById('imageUpload').addEventListener('change', function(e) {
-const files = e.target.files;
-if (files && files[0]) {
-const reader = new FileReader();
-reader.onload = function(event) {
-targetCard.style.backgroundImage = 'url("' + event.target.result + '")';
-const currentVal = document.getElementById('opacitySlider').value;
-cardOverlay.style.backgroundColor = "rgba(255, 255, 255, " + (1 - currentVal) + ")";
-};
-reader.readAsDataURL(files[0]);
-}
-});
-// 직관성 슬라이더 인텐시티 핸들러
-document.getElementById('opacitySlider').addEventListener('input', function(e) {
-if(cardOverlay) {
-cardOverlay.style.backgroundColor = "rgba(255, 255, 255, " + (1 - e.target.value) + ")";
-}
-});
-// 서체 전환 핸들러
-document.getElementById('fontPicker').addEventListener('change', function(e) {
-if(targetCard) targetCard.style.fontFamily = e.target.value;
-});
-// 수평 방향 정렬 루프
-const alignButtons = document.querySelectorAll('#alignBtnGroup button');
-alignButtons.forEach(function(button) {
-button.addEventListener('click', function() {
-const alignValue = this.getAttribute('data-align');
-if(targetCard) targetCard.style.textAlign = alignValue;
-if (badgeContainer) {
-if (alignValue === 'left') badgeContainer.style.justifyContent = 'flex-start';
-if (alignValue === 'center') badgeContainer.style.justifyContent = 'center';
-if (alignValue === 'right') badgeContainer.style.justifyContent = 'flex-end';
-}
-alignButtons.forEach(function(btn) { btn.classList.remove('active'); });
-this.classList.add('active');
-});
-});
-// 외곽 곡률 반경 핸들러
-const radiusButtons = document.querySelectorAll('#radiusBtnGroup button');
-radiusButtons.forEach(function(button) {
-button.addEventListener('click', function() {
-const radiusValue = this.getAttribute('data-radius');
-if(targetCard) targetCard.style.borderRadius = radiusValue;
-radiusButtons.forEach(function(btn) { btn.classList.remove('active'); });
-this.classList.add('active');
-});
-});
-// 초고화질 스냅샷 다운로드 엔진 작동부
-document.getElementById('downloadBtn').addEventListener('click', function() {
-if(!targetCard) return;
-html2canvas(targetCard, {
-useCORS: true,
-scale: 2,
-logging: false
-}).then(function(canvas) {
-const link = document.createElement('a');
-link.download = 'instagram-news-cover.png';
-link.href = canvas.toDataURL('image/png');
-link.click();
-}).catch(function(err) {
-console.error(err);
-alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
-});
-});
-    
-</script>
-
-        <script>
-
-            1
+1
 내용 입력 제어 시스템
 
 
@@ -518,7 +398,7 @@ alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
 카드 뉴스 세부 본문
 타이포그래피 서체 변경
 트렌디한 프리텐다드 고딕
-단정한 프리미엄 명조체
+깔끔한 나눔 고딕
 두꺼운 미디어 속보체
 
 글씨 정렬 선호도
@@ -532,7 +412,7 @@ alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
 둥글 사각
 
 
-
+ 
 💻 실시간 규격 최종 미리보기 :
 네이버 뉴스
 
@@ -547,7 +427,7 @@ const displayTitle = document.getElementById('displayTitle');
 const displayContent = document.getElementById('displayContent');
 const badgeContainer = document.getElementById('badgeContainer');
 const cardOverlay = document.getElementById('cardOverlay');
-// 1단계 클립보드 연동
+// 1단계 클립보드 복사 로직
 document.getElementById('pasteBtn').addEventListener('click', async function() {
 try {
 const text = await navigator.clipboard.readText();
@@ -556,7 +436,7 @@ document.getElementById('contentInput').value = text;
 displayTitle.innerText = text.substring(0, 20);
 displayContent.innerText = text;
 } catch (err) {
-alert('브라우저 보안으로 자동 붙여넣기가 안 될 수 있습니다. 제목과 본문창에 직접 입력해 주세요!');
+alert('제목과 본문창에 직접 붙여넣어 주세요!');
 }
 });
 document.getElementById('clearBtn').addEventListener('click', function() {
@@ -569,7 +449,7 @@ cardOverlay.style.backgroundColor = 'rgba(255,255,255,1)';
 document.getElementById('opacitySlider').value = 0;
 document.getElementById('imageUpload').value = '';
 });
-// 2단계 해상도 크기 가변 대응 시스템
+// 2단계 해상도 크기 가변 트랙 엔진
 const shapeBoxes = document.querySelectorAll('.shape-box');
 shapeBoxes.forEach(function(box) {
 box.addEventListener('click', function() {
@@ -588,14 +468,14 @@ shapeBoxes.forEach(function(b) { b.classList.remove('active'); });
 this.classList.add('active');
 });
 });
-// 3단계 입력폼 제어
+// 3단계 입력 연동
 document.getElementById('keywordInput').addEventListener('input', function(e) {
 if(displayTitle) displayTitle.innerText = e.target.value;
 });
 document.getElementById('contentInput').addEventListener('input', function(e) {
 if(displayContent) displayContent.innerText = e.target.value;
 });
-// 파일 리더 배경화면 연동 (파일명 버그 완벽 패치)
+// 파일 리더 가동
 document.getElementById('imageUpload').addEventListener('change', function(e) {
 const files = e.target.files;
 if (files && files[0]) {
@@ -631,7 +511,7 @@ alignButtons.forEach(function(btn) { btn.classList.remove('active'); });
 this.classList.add('active');
 });
 });
-// 모서리 곡률
+// 곡률
 const radiusButtons = document.querySelectorAll('#radiusBtnGroup button');
 radiusButtons.forEach(function(button) {
 button.addEventListener('click', function() {
@@ -641,7 +521,7 @@ radiusButtons.forEach(function(btn) { btn.classList.remove('active'); });
 this.classList.add('active');
 });
 });
-// 이미지 스냅샷 다운로드 엔진
+// 저장 및 다운로드
 document.getElementById('downloadBtn').addEventListener('click', function() {
 if(!targetCard) return;
 html2canvas(targetCard, {
@@ -655,25 +535,18 @@ link.href = canvas.toDataURL('image/png');
 link.click();
 }).catch(function(err) {
 console.error(err);
-alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
+alert('이미지 저장 중 오류가 발생했습니다.');
 });
 });
+
+    
+</script>
+
+
+
+
+
+
+
+
             
-        </script>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-        
