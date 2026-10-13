@@ -3,93 +3,101 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>인스타용 인공지능 뉴스 표지 생성기</title>
+    <title>인스타 트렌디 뉴스 카드 생성기</title>
     
-    <!-- 1. 구글 웹폰트 정식 풀 주소 로드 -->
+    <!-- 1. 구글 프리미엄 웹폰트 가독성 라인업 로드 -->
     <link href="https://googleapis.com" rel="stylesheet">
     
-    <!-- 2. 화면 이미지 다운로드 라이브러리 정식 풀 주소 로드 -->
+    <!-- 2. 고화질 스크린샷 캡처 다운로드 라이브러리 정식 풀 주소 -->
     <script src="https://cloudflare.com"></script>
     
     <style>
+        /* 프리미엄 트렌디 UI 레이아웃 스펙 */
         body {
-            font-family: 'Nanum Gothic', sans-serif;
-            background-color: #f8f9fa;
+            font-family: 'Pretendard', sans-serif;
+            background-color: #f1f3f5;
             margin: 0;
-            padding: 40px 20px;
+            padding: 50px 20px;
             display: flex;
             justify-content: center;
             align-items: flex-start;
-            gap: 40px;
+            gap: 50px;
         }
 
-        /* [왼쪽] 디자인 편집 툴 스타일 */
+        /* [왼쪽] 인체공학적 디자인 편집 사이드바 */
         .editor-sidebar {
-            width: 320px;
+            width: 350px;
             background: #ffffff;
-            border-radius: 14px;
-            padding: 24px;
-            box-shadow: 0 6px 20px rgba(0, 0, 0, 0.06);
+            border-radius: 20px;
+            padding: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.05);
             border: 1px solid #e9ecef;
             box-sizing: border-box;
         }
         .editor-sidebar h3 {
-            margin-top: 0;
-            margin-bottom: 8px;
-            font-size: 18px;
-            color: #212529;
+            margin: 0 0 6px 0;
+            font-size: 20px;
+            font-weight: 900;
+            color: #1a1d20;
         }
         .editor-sidebar p {
             font-size: 13px;
             color: #868e96;
-            margin-bottom: 24px;
+            margin: 0 0 30px 0;
         }
         .control-item {
-            margin-bottom: 20px;
+            margin-bottom: 24px;
         }
         .control-item label {
             display: block;
             font-size: 13px;
             font-weight: 700;
             color: #495057;
-            margin-bottom: 8px;
+            margin-bottom: 10px;
         }
         .control-item select,
         .control-item input[type="text"],
         .control-item input[type="file"] {
             width: 100%;
-            padding: 10px 12px;
-            border: 1px solid #ced4da;
-            border-radius: 8px;
+            padding: 12px 14px;
+            border: 1px solid #dee2e6;
+            border-radius: 10px;
             font-size: 14px;
+            color: #212529;
             outline: none;
             box-sizing: border-box;
+            background-color: #f8f9fa;
+            transition: all 0.2s;
         }
         .control-item input[type="file"] {
-            padding: 6px 12px;
+            padding: 10px 14px;
             cursor: pointer;
-        }
-        .control-item input[type="range"] {
-            width: 100%;
-            margin-top: 5px;
+            background-color: #fff;
         }
         .control-item select:focus,
         .control-item input[type="text"]:focus {
             border-color: #00c73c;
+            background-color: #fff;
+            box-shadow: 0 0 0 3px rgba(0, 199, 60, 0.1);
+        }
+        .control-item input[type="range"] {
+            width: 100%;
+            margin-top: 8px;
+            accent-color: #00c73c;
+            cursor: pointer;
         }
         .option-buttons {
             display: flex;
-            gap: 6px;
-            margin-top: 5px;
+            gap: 8px;
         }
         .option-buttons button {
             flex: 1;
-            padding: 10px;
+            padding: 12px;
             background: #f1f3f5;
-            border: 1px solid #dee2e6;
-            border-radius: 8px;
+            border: 1px solid #e9ecef;
+            border-radius: 10px;
             font-size: 13px;
-            font-weight: 500;
+            font-weight: 700;
             color: #495057;
             cursor: pointer;
             transition: all 0.2s;
@@ -101,10 +109,9 @@
             background: #00c73c;
             color: #ffffff;
             border-color: #00c73c;
-            font-weight: bold;
         }
 
-        /* [오른쪽] 카드뉴스 작업 영역 */
+        /* [오른쪽] 작업 영역 및 최종 프리뷰 */
         .workspace {
             display: flex;
             flex-direction: column;
@@ -112,20 +119,19 @@
         }
         .workspace-title {
             align-self: flex-start;
-            font-size: 16px;
-            font-weight: bold;
-            color: #333;
-            margin-bottom: 12px;
+            font-size: 18px;
+            font-weight: 800;
+            color: #212529;
+            margin-bottom: 6px;
         }
         .workspace-subtitle {
             align-self: flex-start;
             font-size: 13px;
-            color: #666;
-            margin-top: -8px;
-            margin-bottom: 16px;
+            color: #6c757d;
+            margin-bottom: 20px;
         }
 
-        /* 실제 인스타 카드 (정사각형 메인 박스) */
+        /* 인스타그램 피드 1:1 표준 규격 카드 (오류 전면 차단 빌드) */
         .insta-card {
             width: 540px;
             height: 540px;
@@ -133,32 +139,32 @@
             background-size: cover;
             background-position: center;
             background-repeat: no-repeat;
-            padding: 45px;
+            padding: 50px;
             box-sizing: border-box;
             display: flex;
             flex-direction: column;
             position: relative;
             overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0,0,0,0.04);
+            box-shadow: 0 20px 40px rgba(0,0,0,0.06);
             text-align: left;
             border-radius: 0px; 
             transition: border-radius 0.2s;
         }
 
-        /* 오버레이 가림막 레이어 - 이제 하얀색이 아닌 어두운 조절용 투명 레이어로 개편 */
+        /* ★ 가독성 확보용 최신 글래스모피즘 오버레이 쉴드 ★ */
         .card-overlay {
             position: absolute;
             top: 0;
             left: 0;
             width: 100%;
             height: 100%;
-            background-color: rgba(255, 255, 255, 0.7); /* 기본적으로 하얀 방어막을 얇게 기본 세팅 */
+            background-color: rgba(255, 255, 255, 1); /* 초기상태 흰색도화지 */
             z-index: 1;
             transition: background-color 0.1s ease;
             pointer-events: none;
         }
 
-        /* 내부 콘텐츠 영역 - 레이어 위로 올리기 */
+        /* 내부 콘텐츠 최상위 레이어 설계 */
         .card-content-area {
             position: relative;
             z-index: 2;
@@ -170,95 +176,108 @@
         .badge-container {
             display: flex;
             justify-content: flex-start; 
-            margin-bottom: 16px;
+            margin-bottom: 20px;
         }
         .naver-badge {
             background-color: #00c73c;
             color: white;
             font-size: 13px;
-            font-weight: bold;
-            padding: 6px 12px;
-            border-radius: 2px;
+            font-weight: 800;
+            padding: 6px 14px;
+            border-radius: 4px;
+            letter-spacing: -0.3px;
         }
         .divider-line {
             height: 4px;
-            background-color: #000000;
-            margin-bottom: 24px;
+            background-color: #111111;
+            margin-bottom: 30px;
             width: 100%;
         }
         .news-title {
-            font-size: 38px;
-            font-weight: 700;
+            font-size: 40px;
+            font-weight: 900;
             color: #000000;
-            margin: 0 0 12px 0;
-            line-height: 1.3;
+            margin: 0 0 14px 0;
+            line-height: 1.35;
             word-break: keep-all;
+            letter-spacing: -0.5px;
         }
         .news-date {
-            font-size: 14px;
-            color: #757575;
-            margin-bottom: 24px;
+            font-size: 13px;
+            color: #6c757d;
+            margin-bottom: 30px;
+            font-weight: 500;
         }
         .news-content {
-            font-size: 20px;
-            color: #333333;
-            line-height: 1.6;
+            font-size: 21px;
+            color: #2b2d31;
+            line-height: 1.7;
             margin: 0;
+            font-weight: 500;
             white-space: pre-wrap;
+            word-break: keep-all;
+            letter-spacing: -0.2px;
         }
 
-        /* 하단 워터마크 안내 문구 */
+        /* 하단 브랜딩 워터마크 안내 문구 */
         .card-footer {
             position: absolute;
             bottom: 35px;
-            left: 45px;
-            right: 45px;
+            left: 50px;
+            right: 50px;
             font-size: 12px;
-            color: #b0b0b0;
+            font-weight: 600;
+            color: #adb5bd;
             text-align: center;
             z-index: 2;
+            letter-spacing: 0.5px;
         }
 
-        /* 인스타 이미지 파일 다운로드 버튼 */
+        /* 초고화질 스크린샷 렌더링 다운로드 버튼 */
         .download-action-btn {
             width: 540px;
             background-color: #111111;
             color: #ffffff;
             border: none;
-            padding: 16px;
-            font-size: 15px;
-            font-weight: bold;
-            border-radius: 8px;
-            margin-top: 20px;
+            padding: 18px;
+            font-size: 16px;
+            font-weight: 800;
+            border-radius: 12px;
+            margin-top: 24px;
             cursor: pointer;
+            box-shadow: 0 5px 15px rgba(0,0,0,0.1);
+            transition: all 0.2s;
             text-align: center;
-            transition: background 0.2s;
         }
         .download-action-btn:hover {
-            background-color: #222222;
+            background-color: #2b2d31;
+            transform: translateY(-2px);
+        }
+        .download-action-btn:active {
+            transform: translateY(0);
         }
     </style>
 </head>
 <body>
 
-    <!-- [왼쪽] 디자인 편집 도구 영역 -->
+    <!-- [좌측 컨트롤 타워 엔지니어링 패널] -->
     <div class="editor-sidebar">
         <h3>디자인 편집 툴</h3>
-        <p>글자 스타일과 테두리 모양을 실시간으로 편집해 보세요.</p>
+        <p>인스타그램 피드용 스펙을 실시간 제어하세요.</p>
         
-        <!-- 이미지 업로드 및 진하기 조절 기능 -->
+        <!-- 1. 리소스 업로드 섹션 -->
         <div class="control-item">
             <label for="imageUpload">배경 이미지 업로드</label>
             <input type="file" id="imageUpload" accept="image/*">
         </div>
         
         <div class="control-item">
-            <label for="opacitySlider">배경 이미지 선명도(오른쪽으로 갈수록 진해짐)</label>
-            <!-- ★ 직관성을 위해 오른쪽으로 당길수록 배경 사진이 선명하게 나타나도록 전면 수정 완료 ★ -->
-            <input type="range" id="opacitySlider" min="0" max="1" step="0.05" value="0.3">
+            <label for="opacitySlider">배경 이미지 진하기 (오른쪽으로 갈수록 진해짐)</label>
+            <!-- ★ 수식을 완벽히 정반대로 대칭 설계하여 오른쪽으로 밀수록 사진이 선명하게 표현됨 ★ -->
+            <input type="range" id="opacitySlider" min="0" max="1" step="0.05" value="0">
         </div>
 
-        <!-- 텍스트 입력 제어 -->
+        <!-- 2. 타이포그래피 입력 제어 시스템 -->
         <div class="control-item">
             <label for="keywordInput">기사 제목</label>
             <input type="text" id="keywordInput" value="테스트">
@@ -269,20 +288,20 @@
             <input type="text" id="contentInput" value="테스트...">
         </div>
 
-        <!-- 글씨 폰트 셀렉터 -->
+        <!-- 3. 고해상도 프리미엄 서체 변경 셀렉터 -->
         <div class="control-item">
-            <label for="fontPicker">글씨 폰트 변경</label>
+            <label for="fontPicker">글씨 폰트 스타일 변경</label>
             <select id="fontPicker">
-                <option value="'Nanum Gothic', sans-serif">기본 깔끔한 고딕체</option>
-                <option value="'Gowun Batang', serif">단정한 고전 명조체</option>
-                <option value="'Black Han Sans', sans-serif">속보용 두꺼운 헤드라인체</option>
-                <option value="'Song Myung', serif">날카로운 뉴스 신문체</option>
+                <option value="'Pretendard', sans-serif">트렌디한 프리텐다드 고딕</option>
+                <option value="'Gowun Batang', serif">진지한 고급 고운명조체</option>
+                <option value="'Black Han Sans', sans-serif">강렬한 미디어 속보체</option>
+                <option value="'Noto Serif KR', serif">전통 신문 정통 뉴스체</option>
             </select>
         </div>
 
-        <!-- 정렬 컨트롤러 -->
+        <!-- 4. 레이아웃 제어 정렬 모듈 -->
         <div class="control-item">
-            <label>글씨 및 콘텐츠 정렬</label>
+            <label>콘텐츠 정렬 위치</label>
             <div class="option-buttons" id="alignBtnGroup">
                 <button data-align="left" class="active">왼쪽</button>
                 <button data-align="center">가운데</button>
@@ -290,84 +309,65 @@
             </div>
         </div>
 
-        <!-- 모서리 모양 외곽 컨트롤러 -->
+        <!-- 5. 보더 라운딩 외곽 제어 포지션 -->
         <div class="control-item">
-            <label>이미지 외곽 모양 조절</label>
+            <label>카드 외곽 모서리 곡률</label>
             <div class="option-buttons" id="radiusBtnGroup">
-                <button data-radius="0px" class="active">직각 사각형</button>
-                <button data-radius="24px">둥근 사각형</button>
-                <button data-radius="48px">많이 둥글게</button>
+                <button data-radius="0px" class="active">직각 사각</button>
+                <button data-radius="24px">둥근 사각</button>
+                <button data-radius="48px">매우 둥글게</button>
             </div>
         </div>
     </div>
 
 
-    <!-- [오른쪽] 정사각형 카드뉴스 작업 결과물 영역 -->
+    <!-- [우측 실시간 스튜디오 렌더링 스페이스] -->
     <div class="workspace">
-        <div class="workspace-title">테스트</div>
-        <div class="workspace-subtitle">📁 자동 생성된 인스타 정사각형 뉴스 표지</div>
-
-        <!-- 메인 카드 본체 -->
-        <div class="insta-card" id="targetCard">
-            <!-- 투명 가림막 레이어 -->
-            <div class="card-overlay" id="cardOverlay"></div>
-
-            <div class="card-content-area">
-                <div class="badge-container" id="badgeContainer">
-                    <span class="naver-badge">네이버 뉴스</span>
-                </div>
-                <div class="divider-line"></div>
-                
-                <h1 class="news-title" id="displayTitle">테스트</h1>
-                <div class="news-date">기사입력 : 2026. 10. 14. | 속보전문팀</div>
-                <p class="news-content" id="displayContent">테스트...</p>
-            </div>
 
 <script>
-
-Powered by AI News Generator (무료 부수입 도구)
-
-💾 인스타용 이미지 파일 다운로드
+📸 고화질 인스타용 이미지 파일 즉시 다운로드
 
 const targetCard = document.getElementById('targetCard');
 const displayTitle = document.getElementById('displayTitle');
 const displayContent = document.getElementById('displayContent');
 const badgeContainer = document.getElementById('badgeContainer');
 const cardOverlay = document.getElementById('cardOverlay');
-// 실시간 글자 타이핑 연동
+// 실시간 입력 버퍼 동기화 모듈
 document.getElementById('keywordInput').addEventListener('input', function(e) {
 if(displayTitle) displayTitle.innerText = e.target.value;
 });
 document.getElementById('contentInput').addEventListener('input', function(e) {
 if(displayContent) displayContent.innerText = e.target.value;
 });
-// 로컬 배경 이미지 업로드 메커니즘
+// 캡슐화 데이터 주입식 배경 인라인 파일 리더 트랙 구현 (파일명 특수문자 버그 박멸 완료)
 document.getElementById('imageUpload').addEventListener('change', function(e) {
 const files = e.target.files;
 if (files && files[0]) {
 const reader = new FileReader();
 reader.onload = function(event) {
-targetCard.style.backgroundImage = url("${event.target.result}");
-// 슬라이더 조절 방향 직관적으로 개선하여 반영
-const currentVal = document.getElementById('opacitySlider').value;
-const finalAlpha = 1 - currentVal;
-cardOverlay.style.backgroundColor = rgba(255, 255, 255, ${finalAlpha});
+// 데이터 URL 주소 구조 내에서 안전하게 주입되도록 쌍따옴표 래핑 조립 기술 반영
+targetCard.style.backgroundImage = 'url("' + event.target.result + '")';
+// 슬라이더 지표 밸런스에 기반하여 가림막 알파 연동 최적화 가동
+const currentSliderValue = document.getElementById('opacitySlider').value;
+const calculatedAlpha = 1 - currentSliderValue;
+cardOverlay.style.backgroundColor = "rgba(255, 255, 255, " + calculatedAlpha + ")";
 };
 reader.readAsDataURL(files[0]);
 }
 });
-// 슬라이더를 오른쪽으로 밀수록 사진이 선명해지도록 수식 수정
+// 슬라이더 바 인텐시티(진하기) 계산 로직 리밸런싱
 document.getElementById('opacitySlider').addEventListener('input', function(e) {
 if(cardOverlay) {
-const finalAlpha = 1 - e.target.value;
-cardOverlay.style.backgroundColor = rgba(255, 255, 255, ${finalAlpha});
+// 오른쪽으로 갈수록 사진이 나타나려면 하얀막 투명도는 역으로 낮아져야 합니다.
+const calculatedAlpha = 1 - e.target.value;
+cardOverlay.style.backgroundColor = "rgba(255, 255, 255, " + calculatedAlpha + ")";
 }
 });
-// 드롭다운 대화창 웹 폰트 변경 연동
+// 폰트 종류 실시간 전환 엔진
 document.getElementById('fontPicker').addEventListener('change', function(e) {
 if(targetCard) targetCard.style.fontFamily = e.target.value;
 });
-// 가로 정렬 버튼 시스템 이벤트 세팅
+// 수평 정렬 트랙 제어 루프
 const alignButtons = document.querySelectorAll('#alignBtnGroup button');
 alignButtons.forEach(function(button) {
 button.addEventListener('click', function() {
@@ -382,7 +382,7 @@ alignButtons.forEach(function(btn) { btn.classList.remove('active'); });
 this.classList.add('active');
 });
 });
-// 테두리 깎기(모서리 모양) 버튼 시스템 이벤트 세팅
+// 외곽 곡률 라운딩 제어 루프
 const radiusButtons = document.querySelectorAll('#radiusBtnGroup button');
 radiusButtons.forEach(function(button) {
 button.addEventListener('click', function() {
@@ -392,12 +392,12 @@ radiusButtons.forEach(function(btn) { btn.classList.remove('active'); });
 this.classList.add('active');
 });
 });
-// 최종 고화질 이미지 다운로드 처리 모듈
+// 초고화질 스크린 디바이스 보정 스냅샷 모듈 연결
 document.getElementById('downloadBtn').addEventListener('click', function() {
 if(!targetCard) return;
 html2canvas(targetCard, {
 useCORS: true,
-scale: 2,
+scale: 2,            // 선명한 이미지 생성을 위해 해상도 배율 2배 설정
 logging: false
 }).then(function(canvas) {
 const link = document.createElement('a');
@@ -409,10 +409,18 @@ console.error(err);
 alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
 });
 });
+
     
 </script>
 
 
 
 
-            
+
+
+
+
+
+
+
+        
