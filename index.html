@@ -1,357 +1,173 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="ko">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>돈벌쥐 - AI 뉴스 카드 생성기</title>
-  <link rel="preconnect" href="https://fonts.googleapis.com">
-  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js" defer></script>
-  <style>
-    :root { --blue:#2563eb; --ink:#111827; --muted:#6b7280; --line:#e5e7eb; }
-    * { box-sizing:border-box; }
-    body {
-      margin:0; padding:32px 16px 48px; min-height:100vh;
-      font-family:Pretendard,system-ui,-apple-system,sans-serif;
-      background:#f3f4f6; color:#1f2937;
-    }
-    button,input,select,textarea { font:inherit; }
-    button { cursor:pointer; }
-    .main-container {
-      width:min(100%,760px); margin:0 auto; padding:30px;
-      background:#fff; border-radius:24px; box-shadow:0 10px 30px rgba(0,0,0,.06);
-    }
-    .logo-area { text-align:center; margin-bottom:32px; }
-    .logo-title { margin:0; display:flex; align-items:center; justify-content:center; gap:8px; color:#111827; font-size:30px; font-weight:900; }
-    .logo-sub { margin:7px 0 0; color:#6b7280; font-size:13px; font-weight:600; }
-    .step-section { margin-bottom:32px; }
-    .step-title { display:flex; align-items:center; gap:10px; margin:0 0 15px; font-size:18px; font-weight:800; color:#111827; }
-    .step-number { width:25px; height:25px; display:inline-flex; align-items:center; justify-content:center; border-radius:50%; background:var(--blue); color:#fff; font-size:13px; }
-    .top-btn-group,.card-shape-group,.option-buttons { display:flex; gap:10px; }
-    .action-btn,.shape-box,.option-buttons button {
-      border:1px solid var(--line); border-radius:12px; transition:.15s ease;
-    }
-    .action-btn { flex:1; min-height:48px; padding:12px; display:flex; align-items:center; justify-content:center; gap:8px; font-size:14px; font-weight:700; }
-    .btn-blue { color:var(--blue); background:#eff6ff; border-color:#bfdbfe; }
-    .btn-gray { color:#4b5563; background:#f3f4f6; }
-    .action-btn:hover,.option-buttons button:hover { filter:brightness(.98); transform:translateY(-1px); }
-    .shape-box { flex:1; min-width:0; padding:17px 8px; display:flex; flex-direction:column; align-items:center; gap:8px; background:#fff; }
-    .shape-box.active { border:2px solid var(--blue); padding:16px 7px; background:#eff6ff; }
-    .shape-icon { display:block; border:2px solid #9ca3af; background:#fff; border-radius:3px; }
-    .shape-box.active .shape-icon { border-color:var(--blue); }
-    .icon-horizontal { width:34px; height:22px; }
-    .icon-square { width:27px; height:27px; }
-    .icon-vertical { width:20px; height:34px; }
-    .shape-name { font-size:14px; font-weight:800; color:#111827; }
-    .shape-desc { font-size:11px; color:#6b7280; }
-    .input-item { margin-bottom:18px; }
-    .input-item:last-child { margin-bottom:0; }
-    .input-item label,.field-label { display:block; margin-bottom:8px; font-size:13px; font-weight:800; color:#4b5563; }
-    .input-item input[type="text"],.input-item input[type="date"],.input-item input[type="file"],
-    .input-item select,.input-item textarea {
-      width:100%; padding:12px 13px; border:1px solid #d1d5db; border-radius:10px;
-      background:#f9fafb; color:#111827; outline:none; font-size:14px;
-    }
-    .input-item textarea { min-height:105px; resize:vertical; line-height:1.55; }
-    .input-item input:focus,.input-item select:focus,.input-item textarea:focus { border-color:var(--blue); background:#fff; box-shadow:0 0 0 3px rgba(37,99,235,.09); }
-    .input-item input[type="range"] { width:100%; accent-color:var(--blue); }
-    .range-row { display:flex; justify-content:space-between; align-items:center; gap:12px; font-size:12px; color:#6b7280; }
-    .range-row strong { color:var(--blue); }
-    .option-buttons button { flex:1; padding:10px 8px; background:#f3f4f6; color:#4b5563; font-size:13px; font-weight:700; }
-    .option-buttons button.active { color:#fff; background:var(--blue); border-color:var(--blue); }
-    .two-col { display:grid; grid-template-columns:1fr 1fr; gap:14px; }
-    .hint { margin:7px 0 0; font-size:12px; color:#6b7280; line-height:1.5; }
-    .preview-area-wrapper { display:flex; flex-direction:column; align-items:center; width:100%; }
-    .preview-title { width:100%; max-width:600px; margin:0 0 12px; font-size:15px; font-weight:800; color:#4b5563; }
-    .preview-frame { width:100%; display:flex; justify-content:center; overflow:hidden; padding:2px 0 8px; }
-    .insta-card {
-      --card-width:540px; --card-height:540px;
-      width:var(--card-width); height:var(--card-height); flex:none;
-      background:#fff; background-size:cover; background-position:center; background-repeat:no-repeat;
-      padding:45px; display:flex; flex-direction:column; position:relative; overflow:hidden;
-      box-shadow:0 15px 35px rgba(0,0,0,.06); text-align:left; border-radius:12px;
-      transform-origin:top center;
-    }
-    .card-overlay { position:absolute; inset:0; background:rgba(255,255,255,.88); z-index:1; pointer-events:none; }
-    .card-content-area { position:relative; z-index:2; display:flex; flex-direction:column; height:100%; width:100%; min-width:0; }
-    .badge-container { display:flex; justify-content:flex-start; margin-bottom:16px; }
-    .naver-badge { display:inline-block; background:#00c73c; color:white; font-size:13px; font-weight:800; padding:6px 12px; border-radius:4px; }
-    .divider-line { flex:none; height:4px; background:#111; margin-bottom:24px; width:100%; }
-    .news-title { font-size:38px; font-weight:800; color:#000; margin:0 0 12px; line-height:1.32; word-break:keep-all; overflow-wrap:anywhere; }
-    .news-date { font-size:13px; color:#6b7280; margin-bottom:20px; }
-    .news-content { font-size:20px; color:#374151; line-height:1.62; margin:0; white-space:pre-wrap; overflow-wrap:anywhere; }
-    .card-footer { position:absolute; bottom:28px; left:45px; right:45px; font-size:12px; color:#9ca3af; text-align:center; z-index:2; font-weight:700; }
-    .submit-download-btn { width:100%; max-width:540px; background:#111827; color:#fff; border:0; padding:16px; font-size:16px; font-weight:800; border-radius:12px; margin-top:18px; box-shadow:0 4px 12px rgba(0,0,0,.1); }
-    .submit-download-btn:hover { background:#1f2937; }
-    .status { min-height:20px; margin-top:10px; text-align:center; color:#2563eb; font-size:13px; font-weight:600; }
-    .small-btn { padding:8px 11px; border:1px solid #d1d5db; border-radius:8px; background:#fff; color:#4b5563; font-size:12px; font-weight:700; }
-    @media (max-width:600px) {
-      body { padding:14px 10px 28px; }
-      .main-container { padding:20px 15px; border-radius:18px; }
-      .logo-title { font-size:26px; }
-      .top-btn-group,.card-shape-group { gap:7px; }
-      .shape-box { padding:14px 4px; }
-      .shape-box.active { padding:13px 3px; }
-      .shape-desc { font-size:10px; }
-      .two-col { grid-template-columns:1fr; gap:0; }
-      .insta-card { border-radius:8px; }
-    }
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>돈벌쥐 - AI 뉴스 카드 생성기</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+<style>
+:root{--blue:#2563eb;--ink:#111827;--muted:#6b7280;--line:#e5e7eb;--bg:#f3f6fb}
+*{box-sizing:border-box}body{margin:0;background:var(--bg);color:var(--ink);font-family:Pretendard,system-ui,sans-serif}
+header{background:#fff;border-bottom:1px solid var(--line);padding:17px 22px;display:flex;align-items:center;justify-content:space-between;gap:16px;position:sticky;top:0;z-index:5}
+.brand{font-size:21px;font-weight:900;letter-spacing:-.7px}.brand span{color:var(--blue)}.tag{font-size:12px;background:#eff6ff;color:#1d4ed8;padding:7px 10px;border-radius:999px;font-weight:700}
+main{max-width:1180px;margin:26px auto;padding:0 16px;display:grid;grid-template-columns:minmax(0,1.1fr) minmax(330px,.9fr);gap:22px;align-items:start}
+.panel{background:#fff;border:1px solid var(--line);border-radius:18px;padding:22px;box-shadow:0 5px 22px #0f172a08}
+h1{font-size:25px;margin:0 0 7px;letter-spacing:-.7px}h2{font-size:17px;margin:0 0 16px}.sub{font-size:13px;line-height:1.65;color:var(--muted);margin:0 0 20px}
+.section{padding:18px 0;border-top:1px solid #eef0f4}.section:first-of-type{border-top:0;padding-top:0}
+label{display:block;font-size:13px;font-weight:800;margin:0 0 8px}input[type=text],input[type=url],textarea,select{width:100%;border:1px solid #d7dce5;border-radius:10px;padding:11px 12px;font:inherit;font-size:14px;outline:none;background:#fff}
+input:focus,textarea:focus,select:focus{border-color:#7aa5ff;box-shadow:0 0 0 3px #2563eb14}textarea{resize:vertical;min-height:130px;line-height:1.6}
+.row{display:grid;grid-template-columns:1fr 1fr;gap:12px}.hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:7px}
+button{border:0;border-radius:10px;padding:11px 14px;font:inherit;font-size:13px;font-weight:800;cursor:pointer;transition:.15s}
+button:hover{filter:brightness(.97);transform:translateY(-1px)}.primary{background:var(--blue);color:white}.secondary{background:#eef2ff;color:#1d4ed8}.plain{background:#f3f4f6;color:#374151}.actions{display:flex;gap:9px;flex-wrap:wrap;margin-top:13px}.actions button{flex:1}
+.status{display:none;margin-top:12px;padding:10px 12px;border-radius:10px;font-size:13px;line-height:1.5}.status.show{display:block}.status.info{background:#eff6ff;color:#1d4ed8}.status.error{background:#fff1f2;color:#be123c}.status.ok{background:#ecfdf5;color:#047857}
+.preview-head{display:flex;align-items:center;justify-content:space-between;gap:12px;margin-bottom:16px}.preview-head h2{margin:0}.preview-note{font-size:12px;color:var(--muted)}
+#newsCard{width:100%;aspect-ratio:4/5;max-width:470px;margin:0 auto;background:#fff;position:relative;overflow:hidden;border-radius:4px;display:flex;flex-direction:column;box-shadow:0 10px 30px #11182712}
+#cardImage{height:44%;width:100%;object-fit:cover;background:linear-gradient(135deg,#dbeafe,#fef3c7);display:block}
+.cardContent{padding:25px 25px 19px;display:flex;flex:1;min-height:0;flex-direction:column;position:relative}
+.cardLabel{display:inline-flex;align-self:flex-start;background:var(--blue);color:white;padding:6px 10px;border-radius:5px;font-size:11px;font-weight:900;letter-spacing:.4px;margin-bottom:12px}
+#cardTitle{font-size:clamp(20px,2.1vw,30px);font-weight:900;line-height:1.28;letter-spacing:-.9px;margin:0 0 12px;overflow-wrap:anywhere}
+#cardSummary{font-size:clamp(12px,1.2vw,15px);line-height:1.65;color:#374151;white-space:pre-line;overflow:hidden}
+.cardFooter{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-top:auto;padding-top:17px;font-size:10px;color:#6b7280;font-weight:700}
+.cardLogo{font-weight:900;color:#111827;font-size:12px}.cardLogo span{color:var(--blue)}
+.smallcontrols{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-top:18px}
+footer{text-align:center;color:#9ca3af;font-size:11px;padding:5px 16px 30px}
+@media(max-width:850px){main{grid-template-columns:1fr}.panel{padding:18px}#newsCard{max-width:500px}.tag{display:none}}
+@media(max-width:480px){.row,.smallcontrols{grid-template-columns:1fr}header{padding:14px 16px}h1{font-size:22px}}
+</style>
 </head>
 <body>
-  <main class="main-container">
-    <header class="logo-area">
-      <h1 class="logo-title">돈벌쥐 <span aria-hidden="true">🐭</span></h1>
-      <p class="logo-sub">AI 뉴스 카드 생성기 · 쉽고 빠르게 카드뉴스 만들기</p>
-    </header>
+<header><div class="brand">🐭 돈벌쥐 <span>AI 뉴스 카드</span></div><div class="tag">기사 입력 → AI 요약 → 카드 저장</div></header>
+<main>
+<section class="panel">
+  <h1>AI 뉴스 카드 생성기</h1>
+  <p class="sub">기사 내용을 입력하면 핵심을 요약하고, SNS에 올릴 수 있는 뉴스 카드로 만들어 줍니다. 기존 카드 편집·이미지 저장 기능을 한 화면에 모았습니다.</p>
 
-    <section class="step-section">
-      <h2 class="step-title"><span class="step-number">1</span> 카드에 사용할 배경</h2>
-      <div class="top-btn-group">
-        <button class="action-btn btn-blue" id="uploadTrigger" type="button">🖼️ 배경 이미지 업로드</button>
-        <button class="action-btn btn-gray" id="resetBackground" type="button">↺ 기본 배경으로</button>
-      </div>
-      <input id="backgroundUpload" type="file" accept="image/*" hidden>
-      <p class="hint">직접 촬영한 사진이나 사용 권한이 있는 이미지를 업로드할 수 있어요.</p>
-    </section>
+  <div class="section">
+    <h2>1. 기사 가져오기</h2>
+    <label for="articleUrl">기사 원문 URL (출처 표시용)</label>
+    <input id="articleUrl" type="url" placeholder="https://news.example.com/article">
+    <p class="hint">브라우저 보안(CORS) 때문에 URL만으로 모든 언론사 본문을 자동으로 읽을 수는 없습니다. 기사 본문을 아래에 붙여 넣어 주세요.</p>
+    <label for="articleText" style="margin-top:14px">기사 본문</label>
+    <textarea id="articleText" placeholder="뉴스 기사 본문을 여기에 붙여 넣으세요. 제목과 본문을 함께 넣어도 됩니다."></textarea>
+    <div class="row" style="margin-top:12px">
+      <div><label for="category">분야</label><select id="category"><option>오늘의 뉴스</option><option>경제</option><option>AI·테크</option><option>정치</option><option>사회</option><option>국제</option><option>생활·문화</option><option>부동산</option></select></div>
+      <div><label for="tone">요약 스타일</label><select id="tone"><option value="쉽고 간결하게">쉽고 간결하게</option><option value="핵심 숫자 중심으로">핵심 숫자 중심으로</option><option value="초보자도 이해하기 쉽게">초보자도 이해하기 쉽게</option><option value="중립적인 뉴스 문체로">중립적인 뉴스 문체로</option></select></div>
+    </div>
+    <div class="actions"><button class="primary" id="summarizeBtn">✨ AI로 요약하고 카드 만들기</button><button class="plain" id="sampleBtn">예시 기사 넣기</button></div>
+    <div id="status" class="status" role="status"></div>
+  </div>
 
-    <section class="step-section">
-      <h2 class="step-title"><span class="step-number">2</span> 카드 비율 선택</h2>
-      <div class="card-shape-group" role="group" aria-label="카드 비율 선택">
-        <button class="shape-box" data-shape="horizontal" type="button" aria-pressed="false">
-          <span class="shape-icon icon-horizontal"></span><span class="shape-name">가로형</span><span class="shape-desc">유튜브 · 블로그</span>
-        </button>
-        <button class="shape-box active" data-shape="square" type="button" aria-pressed="true">
-          <span class="shape-icon icon-square"></span><span class="shape-name">정사각형</span><span class="shape-desc">인스타그램</span>
-        </button>
-        <button class="shape-box" data-shape="vertical" type="button" aria-pressed="false">
-          <span class="shape-icon icon-vertical"></span><span class="shape-name">세로형</span><span class="shape-desc">쇼츠 · 릴스</span>
-        </button>
-      </div>
-    </section>
+  <div class="section">
+    <h2>2. 카드 문구 편집</h2>
+    <label for="titleInput">카드 제목</label><input id="titleInput" type="text" maxlength="100" placeholder="뉴스 핵심 제목">
+    <label for="summaryInput" style="margin-top:13px">핵심 요약</label><textarea id="summaryInput" style="min-height:105px" maxlength="600" placeholder="핵심 내용 2~4문장"></textarea>
+    <div class="row" style="margin-top:12px">
+      <div><label for="dateInput">날짜</label><input id="dateInput" type="text"></div>
+      <div><label for="badgeInput">카드 라벨</label><input id="badgeInput" type="text" maxlength="18" value="오늘의 뉴스"></div>
+    </div>
+  </div>
 
-    <section class="step-section">
-      <h2 class="step-title"><span class="step-number">3</span> 뉴스 내용과 디자인</h2>
-      <div class="input-item">
-        <label for="badgeText">상단 카테고리 문구</label>
-        <input id="badgeText" type="text" value="돈벌쥐 뉴스" maxlength="24">
-      </div>
-      <div class="input-item">
-        <label for="newsTitleInput">뉴스 제목</label>
-        <input id="newsTitleInput" type="text" value="오늘의 핵심 뉴스를 한눈에" maxlength="100">
-      </div>
-      <div class="two-col">
-        <div class="input-item">
-          <label for="newsDateInput">날짜</label>
-          <input id="newsDateInput" type="text">
-        </div>
-        <div class="input-item">
-          <label for="badgeColor">카테고리 배지 색상</label>
-          <select id="badgeColor">
-            <option value="#00c73c">네이버 그린</option>
-            <option value="#2563eb">블루</option>
-            <option value="#7c3aed">퍼플</option>
-            <option value="#e11d48">로즈</option>
-            <option value="#111827">블랙</option>
-            <option value="#f59e0b">골드</option>
-          </select>
-        </div>
-      </div>
-      <div class="input-item">
-        <label for="newsContentInput">본문 내용</label>
-        <textarea id="newsContentInput" maxlength="700">복잡한 소식도 핵심만 간결하게 정리해 보세요.
-중요한 정보와 숫자를 쉽게 전달할 수 있습니다.</textarea>
-      </div>
-      <div class="input-item">
-        <label for="footerInput">하단 출처 / 브랜드 문구</label>
-        <input id="footerInput" type="text" value="돈벌쥐 · 오늘의 핵심 정보" maxlength="80">
-      </div>
-      <div class="two-col">
-        <div class="input-item">
-          <label for="titleSize">제목 크기</label>
-          <input id="titleSize" type="range" min="22" max="54" value="38">
-          <div class="range-row"><span>작게</span><strong id="titleSizeValue">38px</strong><span>크게</span></div>
-        </div>
-        <div class="input-item">
-          <label for="contentSize">본문 크기</label>
-          <input id="contentSize" type="range" min="14" max="30" value="20">
-          <div class="range-row"><span>작게</span><strong id="contentSizeValue">20px</strong><span>크게</span></div>
-        </div>
-      </div>
-      <div class="input-item">
-        <label for="overlayOpacity">배경 밝기 / 글자 가독성</label>
-        <input id="overlayOpacity" type="range" min="0" max="100" value="88">
-        <div class="range-row"><span>사진 선명하게</span><strong id="overlayValue">88%</strong><span>밝게 덮기</span></div>
-      </div>
-      <div class="input-item">
-        <label>본문 정렬</label>
-        <div class="option-buttons" role="group" aria-label="본문 정렬">
-          <button type="button" data-align="left" class="active">왼쪽</button>
-          <button type="button" data-align="center">가운데</button>
-          <button type="button" data-align="right">오른쪽</button>
-        </div>
-      </div>
-    </section>
+  <div class="section">
+    <h2>3. 디자인 설정</h2>
+    <label for="imageInput">카드 상단 이미지</label><input id="imageInput" type="file" accept="image/*">
+    <div class="row" style="margin-top:12px">
+      <div><label for="ratioInput">카드 비율</label><select id="ratioInput"><option value="4/5">세로형 4:5 (인스타그램)</option><option value="1/1">정사각형 1:1</option><option value="16/9">가로형 16:9</option></select></div>
+      <div><label for="colorInput">포인트 색상</label><input id="colorInput" type="color" value="#2563eb" style="height:42px;padding:4px"></div>
+    </div>
+    <div class="actions"><button class="secondary" id="resetBtn">디자인 초기화</button><button class="plain" id="clearBtn">문구 비우기</button></div>
+  </div>
+</section>
 
-    <section class="preview-area-wrapper">
-      <h2 class="preview-title">실시간 미리보기</h2>
-      <div class="preview-frame" id="previewFrame">
-        <article class="insta-card" id="card">
-          <div class="card-overlay" id="cardOverlay"></div>
-          <div class="card-content-area" id="cardContentArea">
-            <div class="badge-container"><span class="naver-badge" id="previewBadge">돈벌쥐 뉴스</span></div>
-            <div class="divider-line"></div>
-            <h2 class="news-title" id="previewTitle">오늘의 핵심 뉴스를 한눈에</h2>
-            <div class="news-date" id="previewDate"></div>
-            <p class="news-content" id="previewContent">복잡한 소식도 핵심만 간결하게 정리해 보세요.
-중요한 정보와 숫자를 쉽게 전달할 수 있습니다.</p>
-          </div>
-          <div class="card-footer" id="previewFooter">돈벌쥐 · 오늘의 핵심 정보</div>
-        </article>
-      </div>
-      <button class="submit-download-btn" id="downloadButton" type="button">⬇ 고화질 PNG 이미지 저장</button>
-      <div class="status" id="status" role="status" aria-live="polite"></div>
-    </section>
-  </main>
-
-  <script>
-    (() => {
-      const $ = (id) => document.getElementById(id);
-      const card = $('card');
-      const previewFrame = $('previewFrame');
-      const defaultBackground = 'linear-gradient(135deg, #f8fafc 0%, #e0e7ff 50%, #fce7f3 100%)';
-      let uploadedImageUrl = '';
-
-      const today = new Date();
-      $('newsDateInput').value = `${today.getFullYear()}.${String(today.getMonth()+1).padStart(2,'0')}.${String(today.getDate()).padStart(2,'0')}`;
-      card.style.backgroundImage = defaultBackground;
-
-      function updatePreview() {
-        $('previewBadge').textContent = $('badgeText').value.trim() || '돈벌쥐 뉴스';
-        $('previewBadge').style.backgroundColor = $('badgeColor').value;
-        $('previewTitle').textContent = $('newsTitleInput').value.trim() || '뉴스 제목을 입력해 주세요';
-        $('previewDate').textContent = $('newsDateInput').value.trim();
-        $('previewContent').textContent = $('newsContentInput').value;
-        $('previewFooter').textContent = $('footerInput').value;
-        $('previewTitle').style.fontSize = `${$('titleSize').value}px`;
-        $('previewContent').style.fontSize = `${$('contentSize').value}px`;
-        $('titleSizeValue').textContent = `${$('titleSize').value}px`;
-        $('contentSizeValue').textContent = `${$('contentSize').value}px`;
-        const opacity = Number($('overlayOpacity').value) / 100;
-        $('cardOverlay').style.backgroundColor = `rgba(255,255,255,${opacity})`;
-        $('overlayValue').textContent = `${$('overlayOpacity').value}%`;
-        updateScale();
-      }
-
-      function setShape(shape) {
-        document.querySelectorAll('.shape-box').forEach(btn => {
-          const active = btn.dataset.shape === shape;
-          btn.classList.toggle('active', active);
-          btn.setAttribute('aria-pressed', String(active));
-        });
-        const sizes = {
-          horizontal: [800, 450, 52],
-          square: [540, 540, 45],
-          vertical: [450, 800, 38]
-        };
-        const [w,h,p] = sizes[shape] || sizes.square;
-        card.style.setProperty('--card-width', `${w}px`);
-        card.style.setProperty('--card-height', `${h}px`);
-        card.style.width = `${w}px`;
-        card.style.height = `${h}px`;
-        card.style.padding = `${p}px`;
-        $('previewFooter').style.left = `${p}px`;
-        $('previewFooter').style.right = `${p}px`;
-        $('previewFooter').style.bottom = `${Math.max(24, p-12)}px`;
-        $('previewTitle').style.fontSize = `${Math.min(Number($('titleSize').value), shape === 'vertical' ? 34 : 54)}px`;
-        $('previewContent').style.fontSize = `${Math.min(Number($('contentSize').value), shape === 'vertical' ? 19 : 30)}px`;
-        updateScale();
-      }
-
-      function updateScale() {
-        const available = Math.max(240, previewFrame.clientWidth - 4);
-        const cardWidth = card.offsetWidth || 540;
-        const scale = Math.min(1, available / cardWidth);
-        card.style.transform = `scale(${scale})`;
-        previewFrame.style.height = `${card.offsetHeight * scale + 8}px`;
-      }
-
-      $('uploadTrigger').addEventListener('click', () => $('backgroundUpload').click());
-      $('backgroundUpload').addEventListener('change', (event) => {
-        const file = event.target.files && event.target.files[0];
-        if (!file) return;
-        if (!file.type.startsWith('image/')) {
-          $('status').textContent = '이미지 파일을 선택해 주세요.';
-          return;
-        }
-        if (uploadedImageUrl) URL.revokeObjectURL(uploadedImageUrl);
-        uploadedImageUrl = URL.createObjectURL(file);
-        card.style.backgroundImage = `url("${uploadedImageUrl}")`;
-        $('status').textContent = '배경 이미지를 적용했어요.';
-      });
-      $('resetBackground').addEventListener('click', () => {
-        if (uploadedImageUrl) URL.revokeObjectURL(uploadedImageUrl);
-        uploadedImageUrl = '';
-        $('backgroundUpload').value = '';
-        card.style.backgroundImage = defaultBackground;
-        $('status').textContent = '기본 배경으로 돌아왔어요.';
-      });
-
-      document.querySelectorAll('.shape-box').forEach(btn => btn.addEventListener('click', () => setShape(btn.dataset.shape)));
-      document.querySelectorAll('[data-align]').forEach(btn => btn.addEventListener('click', () => {
-        document.querySelectorAll('[data-align]').forEach(b => b.classList.toggle('active', b === btn));
-        $('cardContentArea').style.textAlign = btn.dataset.align;
-        $('cardContentArea').querySelector('.badge-container').style.justifyContent =
-          btn.dataset.align === 'center' ? 'center' : btn.dataset.align === 'right' ? 'flex-end' : 'flex-start';
-        $('previewDate').style.textAlign = btn.dataset.align;
-        $('previewContent').style.textAlign = btn.dataset.align;
-      }));
-
-      ['badgeText','newsTitleInput','newsDateInput','newsContentInput','footerInput','badgeColor','titleSize','contentSize','overlayOpacity']
-        .forEach(id => $(id).addEventListener('input', updatePreview));
-
-      $('downloadButton').addEventListener('click', async () => {
-        const status = $('status');
-        const button = $('downloadButton');
-        if (typeof html2canvas !== 'function') {
-          status.textContent = '이미지 저장 라이브러리를 불러오지 못했어요. 인터넷 연결을 확인한 뒤 새로고침해 주세요.';
-          return;
-        }
-        const oldText = button.textContent;
-        button.disabled = true;
-        button.textContent = '이미지 생성 중...';
-        status.textContent = '고화질 이미지를 만들고 있어요.';
-        const oldTransform = card.style.transform;
-        try {
-          card.style.transform = 'none';
-          const canvas = await html2canvas(card, {
-            scale: 2, useCORS: true, backgroundColor: null,
-            width: card.offsetWidth, height: card.offsetHeight,
-            logging: false
-          });
-          const link = document.createElement('a');
-          const safeTitle = ($('newsTitleInput').value.trim() || '돈벌쥐_뉴스카드')
-            .replace(/[\\/:*?"<>|]/g, '').replace(/\s+/g, '_').slice(0,40);
-          link.download = `${safeTitle || '돈벌쥐_뉴스카드'}.png`;
-          link.href = canvas.toDataURL('image/png');
-          link.click();
-          status.textContent = '완료! PNG 이미지가 다운로드되었어요.';
-        } catch (error) {
-          console.error(error);
-          status.textContent = '저장에 실패했어요. 배경 이미지를 다시 선택하거나 브라우저를 새로고침해 주세요.';
-        } finally {
-          card.style.transform = oldTransform;
-          button.disabled = false;
-          button.textContent = oldText;
-          updateScale();
-        }
-      });
-
-      window.addEventListener('resize', updateScale);
-      setShape('square');
-      updatePreview();
-    })();
-  </script>
+<section class="panel">
+  <div class="preview-head"><h2>카드 미리보기</h2><span class="preview-note">내용을 수정하면 자동 반영</span></div>
+  <div id="newsCard">
+    <img id="cardImage" alt="뉴스 카드 이미지">
+    <div class="cardContent">
+      <span class="cardLabel" id="cardBadge">오늘의 뉴스</span>
+      <h3 id="cardTitle">AI 뉴스 카드 제목이 여기에 표시됩니다</h3>
+      <div id="cardSummary">기사 내용을 입력하고 AI 요약 버튼을 눌러 보세요. 직접 문구를 편집할 수도 있습니다.</div>
+      <div class="cardFooter"><span class="cardLogo">🐭 돈벌쥐<span> NEWS</span></span><span id="cardDate"></span></div>
+    </div>
+  </div>
+  <div class="smallcontrols">
+    <button class="primary" id="downloadBtn">⬇ PNG 이미지 저장</button>
+    <button class="secondary" id="copyBtn">제목·요약 복사</button>
+  </div>
+  <p class="hint">※ 카드에 사용하는 사진과 기사 내용의 저작권·이용 조건을 확인하세요. 요약 결과는 게시 전에 원문과 대조하는 것이 좋습니다.</p>
+</section>
+</main>
+<footer>돈벌쥐 AI 뉴스 카드 생성기 · AI 요약은 서버 설정 후 활성화됩니다.</footer>
+<script>
+const $ = id => document.getElementById(id);
+const defaultSummary = '기사 내용을 입력하고 AI 요약 버튼을 눌러 보세요. 직접 문구를 편집할 수도 있습니다.';
+function today(){return new Intl.DateTimeFormat('ko-KR',{year:'numeric',month:'2-digit',day:'2-digit'}).format(new Date()).replace(/\. /g,'.').replace('.','.').replace(/\.$/,'');}
+$('dateInput').value = today(); $('cardDate').textContent = $('dateInput').value;
+function sync(){
+  $('cardTitle').textContent = $('titleInput').value.trim() || 'AI 뉴스 카드 제목이 여기에 표시됩니다';
+  $('cardSummary').textContent = $('summaryInput').value.trim() || defaultSummary;
+  $('cardBadge').textContent = $('badgeInput').value.trim() || $('category').value;
+  $('cardDate').textContent = $('dateInput').value;
+  document.documentElement.style.setProperty('--blue',$('colorInput').value);
+  $('newsCard').style.aspectRatio = $('ratioInput').value;
+}
+['titleInput','summaryInput','badgeInput','dateInput','colorInput','ratioInput'].forEach(id=>$(id).addEventListener('input',sync));
+$('category').addEventListener('change',()=>{if(!$('badgeInput').value.trim()||$('badgeInput').value==='오늘의 뉴스')$('badgeInput').value=$('category').value;sync();});
+function showStatus(message,type='info'){const el=$('status');el.textContent=message;el.className='status show '+type;}
+function fallbackSummary(text){
+  const clean=text.replace(/\s+/g,' ').trim();
+  if(!clean) return {title:'기사 본문을 입력해 주세요',summary:'기사 본문을 입력한 뒤 다시 시도해 주세요.'};
+  const sentences=clean.split(/(?<=[.!?。])\s+/).filter(s=>s.length>12);
+  const picked=(sentences.length?sentences:[clean]).slice(0,3).join('\n');
+  return {title:(sentences[0]||clean).slice(0,48)+( (sentences[0]||clean).length>48?'…':''),summary:picked.slice(0,360)};
+}
+$('summarizeBtn').addEventListener('click',async()=>{
+ const text=$('articleText').value.trim();
+ if(text.length<40){showStatus('기사 본문을 40자 이상 붙여 넣어 주세요. URL만 입력한 경우에는 본문을 직접 복사해야 합니다.','error');return;}
+ const btn=$('summarizeBtn');btn.disabled=true;btn.textContent='⏳ 기사를 읽고 요약하는 중…';
+ showStatus('기사 내용을 정리하고 있습니다. 잠시만 기다려 주세요.');
+ try{
+   const response=await fetch('/api/summarize',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({text,category:$('category').value,tone:$('tone').value})});
+   if(!response.ok) throw new Error((await response.json().catch(()=>({}))).error||'AI 서버에 연결할 수 없습니다.');
+   const data=await response.json();
+   $('titleInput').value=data.title||'오늘의 주요 뉴스';
+   $('summaryInput').value=Array.isArray(data.bullets)?data.bullets.map(x=>'• '+x).join('\n'):data.summary||'';
+   $('badgeInput').value=$('category').value;sync();
+   showStatus('AI 요약이 완료되었습니다. 제목과 요약을 확인한 뒤 PNG로 저장하세요.','ok');
+ }catch(err){
+   const data=fallbackSummary(text);
+   $('titleInput').value=data.title;$('summaryInput').value=data.summary;sync();
+   showStatus('AI 서버 연결에 실패해 브라우저의 간단 요약으로 채웠습니다. 실제 AI 요약을 사용하려면 안내 파일대로 서버를 실행하세요. ('+err.message+')','error');
+ }finally{btn.disabled=false;btn.textContent='✨ AI로 요약하고 카드 만들기';}
+});
+$('sampleBtn').addEventListener('click',()=>{
+ $('articleText').value='국내 여러 기업이 업무 효율을 높이기 위해 인공지능 도구 도입을 확대하고 있다. 전문가들은 반복 업무를 자동화하면 생산성을 높일 수 있지만, 결과를 검토하고 개인정보를 보호하는 절차가 중요하다고 강조했다. 기업들은 직원 교육과 내부 보안 기준 마련도 함께 추진하고 있다. 도입 효과는 업무 종류와 조직의 준비 수준에 따라 달라질 수 있어 충분한 검토가 필요하다.';
+ $('articleUrl').value='https://example.com/sample-news';$('category').value='AI·테크';$('badgeInput').value='AI·테크';sync();
+ showStatus('예시 문장을 넣었습니다. AI 요약 버튼을 눌러 테스트하세요.','info');
+});
+$('imageInput').addEventListener('change',e=>{
+ const file=e.target.files&&e.target.files[0];if(!file)return;
+ if(!file.type.startsWith('image/')){showStatus('이미지 파일을 선택해 주세요.','error');return;}
+ const reader=new FileReader();reader.onload=()=>{$('cardImage').src=reader.result;$('cardImage').style.display='block';};reader.readAsDataURL(file);
+});
+$('resetBtn').addEventListener('click',()=>{
+ $('colorInput').value='#2563eb';$('ratioInput').value='4/5';$('badgeInput').value='오늘의 뉴스';$('imageInput').value='';$('cardImage').removeAttribute('src');$('cardImage').style.display='block';sync();showStatus('디자인 설정을 초기화했습니다.','ok');
+});
+$('clearBtn').addEventListener('click',()=>{$('titleInput').value='';$('summaryInput').value='';sync();});
+$('downloadBtn').addEventListener('click',async()=>{
+ if(!window.html2canvas){showStatus('이미지 저장 라이브러리를 불러오지 못했습니다. 인터넷 연결을 확인해 주세요.','error');return;}
+ const btn=$('downloadBtn');btn.disabled=true;btn.textContent='이미지 생성 중…';
+ try{const canvas=await html2canvas($('newsCard'),{scale:2,backgroundColor:'#ffffff',useCORS:true});const a=document.createElement('a');a.download='돈벌쥐_뉴스카드.png';a.href=canvas.toDataURL('image/png');a.click();showStatus('PNG 이미지 저장이 완료되었습니다.','ok');}
+ catch(e){showStatus('이미지 저장에 실패했습니다. 이미지 파일을 다시 선택해 보세요.','error');}
+ finally{btn.disabled=false;btn.textContent='⬇ PNG 이미지 저장';}
+});
+$('copyBtn').addEventListener('click',async()=>{
+ const text=$('titleInput').value+'\n\n'+$('summaryInput').value+'\n\n출처: '+($('articleUrl').value||'원문 URL 미입력');
+ try{await navigator.clipboard.writeText(text);showStatus('제목과 요약을 복사했습니다.','ok');}
+ catch(e){showStatus('복사 권한이 없어 복사하지 못했습니다. 브라우저 권한을 확인해 주세요.','error');}
+});
+sync();
+</script>
 </body>
 </html>
