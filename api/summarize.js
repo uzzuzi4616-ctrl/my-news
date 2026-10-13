@@ -107,4 +107,3 @@ if (!content) {
 const result = JSON.parse(content);
 
 // 7. 결과 형식 확인
-```
