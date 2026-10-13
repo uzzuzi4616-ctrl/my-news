@@ -1,146 +1,58 @@
+html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>AI 뉴스 한 번에 | 이미지 자동 생성기</title>
-    <style>
-        body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; background-color: #f5f6f7; margin: 0; padding: 20px; color: #333; }
-        .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
-        h1 { font-size: 24px; text-align: center; color: #111; margin-bottom: 25px; }
-        .form-group { margin-bottom: 15px; }
-        label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-        button { width: 100%; padding: 12px; background-color: #03cf5d; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-        button:hover { background-color: #02b852; }
-        .loading { display: none; text-align: center; font-weight: bold; color: #666; margin: 20px 0; }
-        #newsResult { display: none; margin-top: 30px; border-top: 2px solid #111; padding-top: 20px; }
-        .news-title { font-size: 26px; font-weight: bold; line-height: 1.4; color: #000; margin-bottom: 15px; }
-        .news-info { font-size: 12px; color: #666; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #e5e5e5; }
-        .news-content { font-size: 16px; line-height: 1.8; color: #333; text-align: justify; white-space: pre-wrap; }
-        
-        /* 이미지 캔버스 레이아웃 디자인 */
-        .canvas-area { text-align: center; margin-top: 25px; display: none; }
-        canvas { border: 1px solid #ddd; max-width: 100%; height: auto; border-radius: 4px; box-shadow: 0 2px 4px rgba(0,0,0,0.05); }
-        .download-btn { background-color: #111; margin-top: 15px; }
-        .download-btn:hover { background-color: #333; }
-    </style>
+    <title>API 키워드 전송 테스트</title>
 </head>
 <body>
-<div class="container">
-    <h1>📰 뉴스 한 번에 만들기 (이미지 자동 합성)</h1>
-    <div class="form-group">
-        <label for="keywordInput">뉴스 제목 (인스타 표지에 박힐 문구)</label>
-        <input type="text" id="keywordInput" placeholder="예: [속보] 주4일제 전격 시행... 오늘부터 바로 쉰다">
-    </div>
-    <div class="form-group">
-        <label for="contentInput">뉴스 본문 내용</label>
-        <input type="text" id="contentInput" placeholder="기사 내용을 가볍게 적어주세요.">
-    </div>
-    <button onclick="generateAINews()">뉴스 및 인스타 이미지 생성</button>
-    <div class="loading" id="loadingText">⏳ 시스템이 뉴스 이미지를 조립하고 있습니다...</div>
 
-    <!-- 결과 텍스트 화면 -->
-    <div id="newsResult">
-        <div class="news-title" id="resTitle"></div>
-        <div class="news-info">기사입력 : <span id="resDate"></span> | AI 속보 전문 기자</div>
-        <div class="news-content" id="resContent"></div>
-        
-        <!-- 실시간 이미지 자동 합성 컴퓨터 그림판 (정사각형 인스타 규격 1080x1080) -->
-        <div class="canvas-area" id="canvasArea">
-            <h3 style="font-size: 16px; color:#555; text-align:left; margin-bottom:10px;">📸 자동 생성된 인스타 정사각형 뉴스 표지</h3>
-            <canvas id="newsCanvas" width="800" height="800"></canvas>
-            <button onclick="downloadImage()" class="download-btn">📥 인스타용 이미지 파일 다운로드</button>
-        </div>
+    <!-- 1. 키워드를 입력받는 HTML 요소 -->
+    <div>
+        <label for="keywordInput">키워드 입력:</label>
+        <input type="text" id="keywordInput" placeholder="검색어나 키 키워드를 입력하세요">
+        <button id="sendBtn">서버로 전송</button>
     </div>
-</div>
 
-<script>
-    function generateAINews() {
-        const keyword = document.getElementById('keywordInput').value;
-        const content = document.getElementById('contentInput').value;
-        const loadingText = document.getElementById('loadingText');
-        const newsResult = document.getElementById('newsResult');
-        if(!keyword || !content) { alert('제목과 본문을 모두 입력해주세요!'); return; }
-        
-        loadingText.style.display = 'block'; newsResult.style.display = 'none';
-        
-        setTimeout(() => {
-            // 1. 텍스트 뉴스 데이터 삽입
-            document.getElementById('resTitle').innerText = keyword;
-            document.getElementById('resContent').innerText = content;
-            document.getElementById('resDate').innerText = new Date().toLocaleString();
-            
-            // 2. 컴퓨터 그림판(Canvas)을 사용해 인스타용 정사각형 가짜 뉴스 이미지 실시간 합성하기
-            const canvas = document.getElementById('newsCanvas');
-            const ctx = canvas.getContext('2d');
-            
-            // 배경색 칠하기 (네이버 뉴스 무드의 깔끔한 그레이 화이트)
-            ctx.fillStyle = '#f8f9fa';
-            ctx.fillRect(0, 0, canvas.width, canvas.height);
-            
-            // 상단 가짜 언론사 네이버 스타일 로고 및 바 그리기
-            ctx.fillStyle = '#03cf5d'; // 네이버 그린 색상
-            ctx.fillRect(40, 40, 140, 45);
-            ctx.fillStyle = '#ffffff';
-            ctx.font = 'bold 20px sans-serif';
-            ctx.fillText('네이버 뉴스', 55, 70);
-            
-            ctx.fillStyle = '#111111';
-            ctx.fillRect(40, 105, canvas.width - 80, 5); // 굵은 상단 경계선
-            
-            // 실시간 사용자가 친 제목 텍스트 도장 쾅쾅 박기 (줄바꿈 자동 계산 기능 포함)
-            ctx.fillStyle = '#000000';
-            ctx.font = 'bold 36px sans-serif';
-            
-            // 제목이 길면 두 줄로 나누어 이쁘게 배치하는 코딩 공식
-            let words = keyword.split(' ');
-            let line = '';
-            let y = 180;
-            for(let n = 0; n < words.length; n++) {
-                let testLine = line + words[n] + ' ';
-                let metrics = ctx.measureText(testLine);
-                if (metrics.width > canvas.width - 100 && n > 0) {
-                    ctx.fillText(line, 40, y);
-                    line = words[n] + ' ';
-                    y += 50;
-                } else { line = testLine; }
+    <!-- 2. 자바스크립트 코드 -->
+    <script>
+        document.getElementById('sendBtn').addEventListener('click', function() {
+            // 입력창에서 값을 가져옵니다.
+            const keyword = document.getElementById('keywordInput').value;
+
+            // 빈 값 체크
+            if (!keyword.trim()) {
+                alert('키워드를 입력해 주세요!');
+                return;
             }
-            ctx.fillText(line, 40, y);
-            
-            // 기사 입력 시간 자막 박기
-            ctx.fillStyle = '#666666';
-            ctx.font = '20px sans-serif';
-            ctx.fillText(`기사입력 : ${new Date().toLocaleDateString()} | 속보전문팀`, 40, y + 60);
-            
-            // 하단 기사 본문 요약 박기
-            ctx.fillStyle = '#333333';
-            ctx.font = '24px sans-serif';
-            ctx.fillText(content.substring(0, 40) + '...', 40, y + 140);
-            
-            // 하단 워터마크 안내선
-            ctx.fillStyle = '#e5e5e5';
-            ctx.fillRect(40, canvas.height - 80, canvas.width - 80, 2);
-            ctx.fillStyle = '#999999';
-            ctx.font = 'italic 18px sans-serif';
-            ctx.fillText('Powered by AI News Generator (무료 부수입 도구)', 40, canvas.height - 40);
-            
-            loadingText.style.display = 'none'; 
-            newsResult.style.display = 'block';
-            document.getElementById('canvasArea').style.display = 'block';
-            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
-        }, 800);
-    }
 
-    // 화면에 그려진 그림판 스냅샷을 즉시 .jpg 파일로 컴퓨터에 떨어뜨려 주는 다운로드 핵심 함수
-    function downloadImage() {
-        const canvas = document.getElementById('newsCanvas');
-        const image = canvas.toDataURL('image/jpeg', 1.0);
-        const link = document.createElement('a');
-        link.download = 'insta-news-thumbnail.jpg';
-        link.href = image;
-        link.click();
-    }
-</script>
+            // [방법 A] GET 방식 전송 예시 (URL 파라미터에 포함)
+            const getUrl = `https://example.com{encodeURIComponent(keyword)}`;
+            
+            fetch(getUrl)
+                .then(response => response.json())
+                .then(data => console.log('GET 성공:', data))
+                .catch(error => console.error('GET 에러:', error));
+
+
+            /* [방법 B] POST 방식 전송 예시 (본문에 포함)
+               필요할 때 아래 주석을 풀고 사용하세요.
+            
+            const postUrl = 'https://example.com';
+            fetch(postUrl, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ keyword: keyword })
+            })
+            .then(response => response.json())
+            .then(data => console.log('POST 성공:', data))
+            .catch(error => console.error('POST 에러:', error));
+            */
+            
+            alert(`'${keyword}' 전송 요청을 보냈습니다. (F12를 눌러 콘솔창을 확인하세요)`);
+        });
+    </script>
+
 </body>
 </html>
