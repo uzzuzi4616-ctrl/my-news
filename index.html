@@ -1,58 +1,265 @@
-html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>API 키워드 전송 테스트</title>
+    <title>인스타 뉴스 표지 생성기</title>
+    <!-- 구글 웹폰트 추가 (고딕, 명조, 나눔손글씨) -->
+    <link href="https://googleapis.com" rel="stylesheet">
+    <style>
+        body {
+            font-family: 'Nanum Gothic', sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            display: flex;
+            justify-content: center;
+            align-items: flex-start;
+            gap: 30px;
+        }
+
+        /* [좌측] 편집 컨트롤러 스타일 */
+        .control-panel {
+            background: white;
+            padding: 20px;
+            border-radius: 12px;
+            box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+            width: 300px;
+        }
+        .control-group {
+            margin-bottom: 20px;
+        }
+        .control-group label {
+            display: block;
+            font-weight: bold;
+            margin-bottom: 8px;
+            font-size: 14px;
+            color: #333;
+        }
+        .control-group select, 
+        .control-group input[type="text"] {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ddd;
+            border-radius: 6px;
+            box-sizing: border-box;
+        }
+        .btn-group {
+            display: flex;
+            gap: 5px;
+        }
+        .btn-group button {
+            flex: 1;
+            padding: 8px;
+            border: 1px solid #ddd;
+            background: #fff;
+            border-radius: 6px;
+            cursor: pointer;
+            font-size: 12px;
+        }
+        .btn-group button.active {
+            background: #00c73c;
+            color: white;
+            border-color: #00c73c;
+        }
+
+        /* [우측] 카드뉴스 이미지 미리보기 구역 */
+        .preview-container {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+        }
+
+        /* 인스타 정사각형 카드 바깥 테두리 (모양 변경 대상) */
+        #newsCard {
+            width: 500px;
+            height: 500px;
+            background: white;
+            border: 1px solid #e0e0e0;
+            padding: 40px;
+            box-sizing: border-box;
+            display: flex;
+            flex-direction: column;
+            justify-content: flex-start;
+            position: relative;
+            transition: border-radius 0.3s ease; /* 부드러운 라운드 변경 */
+            /* 초기값: 정렬 왼쪽 */
+            text-align: left; 
+        }
+
+        /* 내부 콘텐츠 스타일 */
+        .badge {
+            background-color: #00c73c;
+            color: white;
+            padding: 6px 12px;
+            font-size: 14px;
+            font-weight: bold;
+            display: inline-block;
+            width: max-content;
+            margin-bottom: 15px;
+        }
+        /* 정렬 변경 시 배지 정렬도 따라가도록 조절하기 위함 */
+        .badge-wrapper {
+            display: flex;
+            justify-content: flex-start;
+        }
+        .line {
+            height: 4px;
+            background-color: #000;
+            margin-bottom: 30px;
+        }
+        .title {
+            font-size: 36px;
+            margin: 0 0 10px 0;
+            word-break: keep-all;
+        }
+        .meta {
+            font-size: 14px;
+            color: #888;
+            margin-bottom: 30px;
+        }
+        .content {
+            font-size: 18px;
+            line-height: 1.6;
+            color: #333;
+            white-space: pre-wrap;
+        }
+        .footer-text {
+            position: absolute;
+            bottom: 30px;
+            left: 40px;
+            right: 40px;
+            font-size: 12px;
+            color: #bbb;
+            text-align: center;
+        }
+
+        /* 하단 다운로드 버튼 */
+        .download-btn {
+            margin-top: 15px;
+            width: 500px;
+            background-color: #111;
+            color: white;
+            border: none;
+            padding: 15px;
+            font-size: 15px;
+            font-weight: bold;
+            border-radius: 6px;
+            cursor: pointer;
+            text-align: center;
+        }
+    </style>
 </head>
 <body>
 
-    <!-- 1. 키워드를 입력받는 HTML 요소 -->
-    <div>
-        <label for="keywordInput">키워드 입력:</label>
-        <input type="text" id="keywordInput" placeholder="검색어나 키 키워드를 입력하세요">
-        <button id="sendBtn">서버로 전송</button>
+    <!-- [좌측] 도구 툴 상자 -->
+    <div class="control-panel">
+        <h3>디자인 편집 툴</h3>
+        <hr style="border: 0; height: 1px; background: #eee; margin-bottom: 20px;">
+
+        <!-- 1. 텍스트 입력창 -->
+        <div class="control-group">
+            <label>제목 입력</label>
+            <input type="text" id="titleInput" value="테스트">
+        </div>
+        <div class="control-group">
+            <label>본문 내용 입력</label>
+            <input type="text" id="contentInput" value="테스트...">
+        </div>
+
+        <!-- 2. 폰트 종류 변경 -->
+        <div class="control-group">
+            <label>글씨 폰트 변경</label>
+            <select id="fontSelect">
+                <option value="'Nanum Gothic', sans-serif">기본 고딕체</option>
+                <option value="'Gowun Batang', serif">고전 명조체</option>
+                <option value="'Black Han Sans', sans-serif">배달의민족 한나체 (두꺼움)</option>
+                <option value="'Gamja Flower', cursive">감자꽃체 (손글씨 느낌)</option>
+            </select>
+        </div>
+
+        <!-- 3. 글씨 정렬 변경 -->
+        <div class="control-group">
+            <label>글씨 정렬</label>
+            <div class="btn-group">
+                <button onclick="changeAlign('left', this)" class="active">왼쪽</button>
+                <button onclick="changeAlign('center', this)">가운데</button>
+                <button onclick="changeAlign('right', this)">오른쪽</button>
+            </div>
+        </div>
+
+        <!-- 4. 이미지 모서리 곡률(둥근 사각형) 변경 -->
+        <div class="control-group">
+            <label>이미지 테두리 모양 (사각/둥글게)</label>
+            <div class="btn-group">
+                <button onclick="changeRadius('0px', this)" class="active">직각 사각형</button>
+                <button onclick="changeRadius('20px', this)">둥근 사각형</button>
+                <button onclick="changeRadius('50px', this)">많이 둥글게</button>
+            </div>
+        </div>
     </div>
 
-    <!-- 2. 자바스크립트 코드 -->
+    <!-- [우측] 카드뉴스 결과물 미리보기 화면 -->
+    <div class="preview-container">
+        <div id="newsCard">
+            <div class="badge-wrapper" id="badgeWrapper">
+                <span class="badge">네이버 뉴스</span>
+            </div>
+            <div class="line"></div>
+            <h1 class="title" id="cardTitle">테스트</h1>
+            <div class="meta">기사입력 : 2026. 10. 14. | 속보전문팀</div>
+            <div class="content" id="cardContent">테스트...</div>
+            <div class="footer-text">Powered by AI News Generator (무료 부수입 도구)</div>
+        </div>
+        
+        <button class="download-btn">📸 인스타용 이미지 파일 다운로드</button>
+    </div>
+
+    <!-- 자바스크립트 연동 코드 -->
     <script>
-        document.getElementById('sendBtn').addEventListener('click', function() {
-            // 입력창에서 값을 가져옵니다.
-            const keyword = document.getElementById('keywordInput').value;
+        const card = document.getElementById('newsCard');
+        const cardTitle = document.getElementById('cardTitle');
+        const cardContent = document.getElementById('cardContent');
+        const badgeWrapper = document.getElementById('badgeWrapper');
 
-            // 빈 값 체크
-            if (!keyword.trim()) {
-                alert('키워드를 입력해 주세요!');
-                return;
-            }
-
-            // [방법 A] GET 방식 전송 예시 (URL 파라미터에 포함)
-            const getUrl = `https://example.com{encodeURIComponent(keyword)}`;
-            
-            fetch(getUrl)
-                .then(response => response.json())
-                .then(data => console.log('GET 성공:', data))
-                .catch(error => console.error('GET 에러:', error));
-
-
-            /* [방법 B] POST 방식 전송 예시 (본문에 포함)
-               필요할 때 아래 주석을 풀고 사용하세요.
-            
-            const postUrl = 'https://example.com';
-            fetch(postUrl, {
-                method: 'POST',
-                headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ keyword: keyword })
-            })
-            .then(response => response.json())
-            .then(data => console.log('POST 성공:', data))
-            .catch(error => console.error('POST 에러:', error));
-            */
-            
-            alert(`'${keyword}' 전송 요청을 보냈습니다. (F12를 눌러 콘솔창을 확인하세요)`);
+        // 1. 실시간 텍스트 연동
+        document.getElementById('titleInput').addEventListener('input', (e) => {
+            cardTitle.innerText = e.target.value;
         });
-    </script>
+        document.getElementById('contentInput').addEventListener('input', (e) => {
+            cardContent.innerText = e.target.value;
+        });
 
+        // 2. 폰트 변경 함수
+        document.getElementById('fontSelect').addEventListener('change', (e) => {
+            card.style.fontFamily = e.target.value;
+        });
+
+        // 3. 정렬 변경 함수
+        function changeAlign(alignment, btnElement) {
+            // 카드 텍스트 정렬 변경
+            card.style.textAlign = alignment;
+            
+            // 네이버 뉴스 초록색 배지도 정렬 위치 따라가도록 수정
+            if(alignment === 'left') badgeWrapper.style.justifyContent = 'flex-start';
+            if(alignment === 'center') badgeWrapper.style.justifyContent = 'center';
+            if(alignment === 'right') badgeWrapper.style.justifyContent = 'flex-end';
+
+            // 버튼 활성화 클래스 토글
+            const buttons = btnElement.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+
+        // 4. 모서리 라운딩(둥근 모양) 변경 함수
+        function changeRadius(radiusValue, btnElement) {
+            card.style.borderRadius = radiusValue;
+
+            // 버튼 활성화 클래스 토글
+            const buttons = btnElement.parentElement.querySelectorAll('button');
+            buttons.forEach(btn => btn.classList.remove('active'));
+            btnElement.classList.add('active');
+        }
+    </script>
 </body>
 </html>
