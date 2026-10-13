@@ -10,6 +10,10 @@
     <script src="https://cloudflare.com"></script>
     
     <style>
+
+        
+
+        
         body {
             font-family: 'Pretendard', sans-serif;
             background-color: #f3f4f6;
@@ -476,3 +480,200 @@ alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
 });
     
 </script>
+
+        <script>
+
+            1
+내용 입력 제어 시스템
+
+
+📋 복사한 내용 붙여넣기
+🗑️ 지우기
+
+2
+그림 모양 고르기
+
+
+
+
+가로
+블로그·유튜브
+
+
+
+정사각형
+인스타 게시물
+
+
+
+세로
+스토리·릴스
+
+
+3
+그림 느낌 고르기 (디자인 상세 옵션)
+배경 이미지 파일 등록
+배경 사진 선명도 조절 (오른쪽으로 밀수록 진해짐)
+표지 헤드라인 제목
+카드 뉴스 세부 본문
+타이포그래피 서체 변경
+트렌디한 프리텐다드 고딕
+단정한 프리미엄 명조체
+두꺼운 미디어 속보체
+
+글씨 정렬 선호도
+왼쪽
+가운데
+오른쪽
+
+외곽 테두리 굴곡 반경
+기본 곡선
+직각 사각
+둥글 사각
+
+
+
+💻 실시간 규격 최종 미리보기 :
+네이버 뉴스
+
+테스트
+기사입력 : 2026. 10. 14. | 속보전문팀
+테스트...
+Powered by AI News Generator (무료 부수입 도구)
+
+📸 완성형 기사 표지미리보기 이미지 저장하기
+const targetCard = document.getElementById('targetCard');
+const displayTitle = document.getElementById('displayTitle');
+const displayContent = document.getElementById('displayContent');
+const badgeContainer = document.getElementById('badgeContainer');
+const cardOverlay = document.getElementById('cardOverlay');
+// 1단계 클립보드 연동
+document.getElementById('pasteBtn').addEventListener('click', async function() {
+try {
+const text = await navigator.clipboard.readText();
+document.getElementById('keywordInput').value = text.substring(0, 20);
+document.getElementById('contentInput').value = text;
+displayTitle.innerText = text.substring(0, 20);
+displayContent.innerText = text;
+} catch (err) {
+alert('브라우저 보안으로 자동 붙여넣기가 안 될 수 있습니다. 제목과 본문창에 직접 입력해 주세요!');
+}
+});
+document.getElementById('clearBtn').addEventListener('click', function() {
+document.getElementById('keywordInput').value = '';
+document.getElementById('contentInput').value = '';
+displayTitle.innerText = '';
+displayContent.innerText = '';
+targetCard.style.backgroundImage = 'none';
+cardOverlay.style.backgroundColor = 'rgba(255,255,255,1)';
+document.getElementById('opacitySlider').value = 0;
+document.getElementById('imageUpload').value = '';
+});
+// 2단계 해상도 크기 가변 대응 시스템
+const shapeBoxes = document.querySelectorAll('.shape-box');
+shapeBoxes.forEach(function(box) {
+box.addEventListener('click', function() {
+const ratio = this.getAttribute('data-ratio');
+if (ratio === 'horizontal') {
+targetCard.style.width = '540px';
+targetCard.style.height = '303px';
+} else if (ratio === 'square') {
+targetCard.style.width = '540px';
+targetCard.style.height = '540px';
+} else if (ratio === 'vertical') {
+targetCard.style.width = '303px';
+targetCard.style.height = '540px';
+}
+shapeBoxes.forEach(function(b) { b.classList.remove('active'); });
+this.classList.add('active');
+});
+});
+// 3단계 입력폼 제어
+document.getElementById('keywordInput').addEventListener('input', function(e) {
+if(displayTitle) displayTitle.innerText = e.target.value;
+});
+document.getElementById('contentInput').addEventListener('input', function(e) {
+if(displayContent) displayContent.innerText = e.target.value;
+});
+// 파일 리더 배경화면 연동 (파일명 버그 완벽 패치)
+document.getElementById('imageUpload').addEventListener('change', function(e) {
+const files = e.target.files;
+if (files && files[0]) {
+const reader = new FileReader();
+reader.onload = function(event) {
+targetCard.style.backgroundImage = 'url("' + event.target.result + '")';
+const currentVal = document.getElementById('opacitySlider').value;
+cardOverlay.style.backgroundColor = "rgba(255, 255, 255, " + (1 - currentVal) + ")";
+};
+reader.readAsDataURL(files[0]);
+}
+});
+document.getElementById('opacitySlider').addEventListener('input', function(e) {
+if(cardOverlay) {
+cardOverlay.style.backgroundColor = "rgba(255, 255, 255, " + (1 - e.target.value) + ")";
+}
+});
+document.getElementById('fontPicker').addEventListener('change', function(e) {
+if(targetCard) targetCard.style.fontFamily = e.target.value;
+});
+// 정렬
+const alignButtons = document.querySelectorAll('#alignBtnGroup button');
+alignButtons.forEach(function(button) {
+button.addEventListener('click', function() {
+const alignValue = this.getAttribute('data-align');
+if(targetCard) targetCard.style.textAlign = alignValue;
+if (badgeContainer) {
+if (alignValue === 'left') badgeContainer.style.justifyContent = 'flex-start';
+if (alignValue === 'center') badgeContainer.style.justifyContent = 'center';
+if (alignValue === 'right') badgeContainer.style.justifyContent = 'flex-end';
+}
+alignButtons.forEach(function(btn) { btn.classList.remove('active'); });
+this.classList.add('active');
+});
+});
+// 모서리 곡률
+const radiusButtons = document.querySelectorAll('#radiusBtnGroup button');
+radiusButtons.forEach(function(button) {
+button.addEventListener('click', function() {
+const radiusValue = this.getAttribute('data-radius');
+if(targetCard) targetCard.style.borderRadius = radiusValue;
+radiusButtons.forEach(function(btn) { btn.classList.remove('active'); });
+this.classList.add('active');
+});
+});
+// 이미지 스냅샷 다운로드 엔진
+document.getElementById('downloadBtn').addEventListener('click', function() {
+if(!targetCard) return;
+html2canvas(targetCard, {
+useCORS: true,
+scale: 2,
+logging: false
+}).then(function(canvas) {
+const link = document.createElement('a');
+link.download = 'instagram-news-cover.png';
+link.href = canvas.toDataURL('image/png');
+link.click();
+}).catch(function(err) {
+console.error(err);
+alert('이미지 파일 다운로드 도중 에러가 발생했습니다.');
+});
+});
+            
+        </script>
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+        
