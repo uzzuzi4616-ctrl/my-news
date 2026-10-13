@@ -1,11 +1,10 @@
 <!DOCTYPE html>
+
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-
   <title>돈벌쥐 - AI 뉴스 카드 생성기</title>
-
   <meta name="description" content="AI로 뉴스를 쉽고 간결하게 요약하고 뉴스 카드 콘텐츠를 만들어 보세요.">
 
   <style>
@@ -21,10 +20,7 @@
       line-height: 1.6;
     }
 
-    button,
-    input,
-    textarea,
-    select {
+    button, input, textarea, select {
       font: inherit;
     }
 
@@ -33,7 +29,7 @@
     }
 
     .header {
-      background: #ffffff;
+      background: #fff;
       border-bottom: 1px solid #e8ebf2;
       padding: 18px 20px;
     }
@@ -97,7 +93,7 @@
     }
 
     .panel {
-      background: #ffffff;
+      background: #fff;
       border: 1px solid #e8ebf2;
       border-radius: 20px;
       padding: 25px;
@@ -122,19 +118,17 @@
       font-weight: 700;
     }
 
-    textarea,
-    select {
+    textarea, select {
       width: 100%;
       border: 1px solid #dfe3ed;
       border-radius: 12px;
-      background: #ffffff;
+      background: #fff;
       padding: 13px 14px;
       color: #202638;
       outline: none;
     }
 
-    textarea:focus,
-    select:focus {
+    textarea:focus, select:focus {
       border-color: #7564ef;
       box-shadow: 0 0 0 3px rgba(117, 100, 239, 0.10);
     }
@@ -163,7 +157,7 @@
       border-radius: 12px;
       padding: 15px 20px;
       background: #6654e8;
-      color: #ffffff;
+      color: #fff;
       font-size: 16px;
       font-weight: 800;
       transition: background 0.2s;
@@ -185,6 +179,7 @@
       border-radius: 10px;
       font-size: 14px;
       overflow-wrap: anywhere;
+      white-space: pre-wrap;
     }
 
     .status.show {
@@ -247,7 +242,7 @@
     .news-card-label {
       display: inline-block;
       background: #6654e8;
-      color: white;
+      color: #fff;
       border-radius: 7px;
       padding: 5px 10px;
       font-size: 12px;
@@ -296,7 +291,7 @@
     .secondary-button {
       border: 1px solid #dfe3ed;
       border-radius: 10px;
-      background: #ffffff;
+      background: #fff;
       color: #34394a;
       padding: 10px 14px;
       font-weight: 700;
@@ -352,15 +347,48 @@
         flex-direction: column;
       }
     }
+
+    @media print {
+      body {
+        background: #fff;
+      }
+
+      .header,
+      .intro,
+      .input-panel,
+      .result-actions,
+      .footer,
+      .result-top,
+      .status {
+        display: none !important;
+      }
+
+      .container {
+        max-width: none;
+        padding: 0;
+      }
+
+      .result-panel,
+      .result-panel.visible {
+        display: block !important;
+        border: none;
+        box-shadow: none;
+      }
+
+      .news-card {
+        border: 1px solid #ddd;
+        print-color-adjust: exact;
+        -webkit-print-color-adjust: exact;
+      }
+    }
   </style>
+
 </head>
 
 <body>
-
   <header class="header">
     <div class="header-inner">
       <div class="logo">🐭</div>
-
       <div class="brand">
         <h1>돈벌쥐</h1>
         <p>AI NEWS CARD GENERATOR</p>
@@ -369,154 +397,104 @@
   </header>
 
   <main class="container">
-
     <section class="intro">
       <h2>
         복잡한 뉴스를<br>
         <span class="highlight">쉽고 빠르게 콘텐츠로!</span>
       </h2>
-
       <p>
         뉴스 내용을 입력하면 AI가 핵심을 요약하고<br>
         뉴스 카드 형태로 정리해 줍니다.
       </p>
     </section>
 
-    <section class="panel">
-      <h2 class="section-title">📰 뉴스 내용 입력</h2>
+```
+<section class="panel input-panel">
+  <h2 class="section-title">📰 뉴스 내용 입력</h2>
 
-      <form id="newsForm">
+  <form id="newsForm">
+    <div class="field">
+      <label for="newsText">뉴스 원문</label>
+      <textarea
+        id="newsText"
+        name="newsText"
+        placeholder="요약할 뉴스 기사 내용을 여기에 붙여 넣어 주세요."
+        required
+      ></textarea>
+      <div class="help">
+        기사 제목과 본문을 함께 입력하면 더욱 편리합니다.
+      </div>
+    </div>
 
-        <div class="field">
-          <label for="newsText">뉴스 원문</label>
-
-          <textarea
-            id="newsText"
-            name="newsText"
-            placeholder="요약할 뉴스 기사 내용을 여기에 붙여 넣어 주세요."
-            required
-          ></textarea>
-
-          <div class="help">
-            기사 제목과 본문을 함께 입력하면 더욱 편리합니다.
-          </div>
-        </div>
-
-        <div class="two-columns">
-
-          <div class="field">
-            <label for="category">뉴스 분류</label>
-
-            <select id="category" name="category">
-              <option value="경제">경제</option>
-              <option value="정치">정치</option>
-              <option value="사회">사회</option>
-              <option value="IT·AI">IT · AI</option>
-              <option value="국제">국제</option>
-              <option value="생활">생활</option>
-              <option value="연예">연예</option>
-              <option value="스포츠">스포츠</option>
-              <option value="일반" selected>일반</option>
-            </select>
-          </div>
-
-          <div class="field">
-            <label for="tone">요약 스타일</label>
-
-            <select id="tone" name="tone">
-              <option value="쉽고 간결하게" selected>
-                쉽고 간결하게
-              </option>
-
-              <option value="핵심 숫자 중심으로">
-                핵심 숫자 중심으로
-              </option>
-
-              <option value="초보자도 이해하기 쉽게">
-                초보자도 이해하기 쉽게
-              </option>
-
-              <option value="중립적인 뉴스 문체로">
-                중립적인 뉴스 문체로
-              </option>
-            </select>
-          </div>
-
-        </div>
-
-        <button
-          type="submit"
-          class="primary-button"
-          id="generateButton"
-        >
-          ✨ AI 뉴스 요약 생성하기
-        </button>
-
-        <div
-          id="status"
-          class="status"
-          role="status"
-          aria-live="polite"
-        ></div>
-
-      </form>
-    </section>
-
-    <section
-      class="panel result-panel"
-      id="resultPanel"
-    >
-
-      <div class="result-top">
-        <h2>🎨 AI 뉴스 카드 결과</h2>
-        <span class="badge">AI SUMMARY</span>
+    <div class="two-columns">
+      <div class="field">
+        <label for="category">뉴스 분류</label>
+        <select id="category" name="category">
+          <option value="경제">경제</option>
+          <option value="정치">정치</option>
+          <option value="사회">사회</option>
+          <option value="IT·AI">IT · AI</option>
+          <option value="국제">국제</option>
+          <option value="생활">생활</option>
+          <option value="연예">연예</option>
+          <option value="스포츠">스포츠</option>
+          <option value="일반" selected>일반</option>
+        </select>
       </div>
 
-      <article class="news-card" id="newsCard">
-
-        <div class="news-card-label">
-          돈벌쥐 NEWS
-        </div>
-
-        <h3 id="resultTitle"></h3>
-
-        <h4>핵심 요점</h4>
-
-        <ul id="resultBullets"></ul>
-
-        <h4>한눈에 보는 뉴스</h4>
-
-        <p
-          class="summary-text"
-          id="resultSummary"
-        ></p>
-
-        <div class="card-footer">
-          <span>돈벌쥐 AI 뉴스 카드</span>
-          <span>핵심 정보 요약</span>
-        </div>
-
-      </article>
-
-      <div class="result-actions">
-        <button
-          type="button"
-          class="secondary-button"
-          id="copyButton"
-        >
-          📋 결과 복사하기
-        </button>
-
-        <button
-          type="button"
-          class="secondary-button"
-          id="downloadButton"
-        >
-          💾 카드 이미지 저장
-        </button>
+      <div class="field">
+        <label for="tone">요약 스타일</label>
+        <select id="tone" name="tone">
+          <option value="쉽고 간결하게" selected>쉽고 간결하게</option>
+          <option value="핵심 숫자 중심으로">핵심 숫자 중심으로</option>
+          <option value="초보자도 이해하기 쉽게">초보자도 이해하기 쉽게</option>
+          <option value="중립적인 뉴스 문체로">중립적인 뉴스 문체로</option>
+        </select>
       </div>
+    </div>
 
-    </section>
+    <button type="submit" class="primary-button" id="generateButton">
+      ✨ AI 뉴스 요약 생성하기
+    </button>
+
+    <div id="status" class="status" role="status" aria-live="polite"></div>
+  </form>
+</section>
+
+<section class="panel result-panel" id="resultPanel">
+  <div class="result-top">
+    <h2>🎨 AI 뉴스 카드 결과</h2>
+    <span class="badge">AI SUMMARY</span>
+  </div>
+
+  <article class="news-card" id="newsCard">
+    <div class="news-card-label">돈벌쥐 NEWS</div>
+
+    <h3 id="resultTitle"></h3>
+
+    <h4>핵심 요점</h4>
+    <ul id="resultBullets"></ul>
+
+    <h4>한눈에 보는 뉴스</h4>
+    <p class="summary-text" id="resultSummary"></p>
+
+    <div class="card-footer">
+      <span>돈벌쥐 AI 뉴스 카드</span>
+      <span>핵심 정보 요약</span>
+    </div>
+  </article>
+
+  <div class="result-actions">
+    <button type="button" class="secondary-button" id="copyButton">
+      📋 결과 복사하기
+    </button>
+
+    <button type="button" class="secondary-button" id="downloadButton">
+      💾 카드 이미지 저장
+    </button>
+  </div>
+</section>
+```
 
   </main>
 
@@ -548,14 +526,8 @@
       statusBox.className = "status show " + type;
     }
 
-    function clearStatus() {
-      statusBox.textContent = "";
-      statusBox.className = "status";
-    }
-
     function displayResult(result) {
       resultTitle.textContent = result.title;
-
       resultBullets.replaceChildren();
 
       result.bullets.forEach(function (bullet) {
@@ -565,9 +537,7 @@
       });
 
       resultSummary.textContent = result.summary;
-
       resultPanel.classList.add("visible");
-
       latestResult = result;
 
       resultPanel.scrollIntoView({
@@ -590,21 +560,15 @@
       generateButton.disabled = true;
       generateButton.textContent = "⏳ AI가 뉴스를 요약하고 있습니다...";
 
-      showStatus(
-        "뉴스를 분석하고 있습니다. 잠시만 기다려 주세요.",
-        "info"
-      );
-
+      showStatus("뉴스를 분석하고 있습니다. 잠시만 기다려 주세요.", "info");
       resultPanel.classList.remove("visible");
 
       try {
         const response = await fetch("/api/summarize", {
           method: "POST",
-
           headers: {
             "Content-Type": "application/json"
           },
-
           body: JSON.stringify({
             text: text,
             category: category.value,
@@ -612,13 +576,25 @@
           })
         });
 
-        const data = await response.json().catch(function () {
-          return {};
-        });
+        const responseText = await response.text();
+        let data = {};
+
+        try {
+          data = responseText ? JSON.parse(responseText) : {};
+        } catch {
+          throw new Error(
+            "서버가 JSON 형식으로 응답하지 않았습니다. HTTP 상태 코드: " +
+            response.status +
+            ". Vercel 서버 로그를 확인해 주세요."
+          );
+        }
 
         if (!response.ok) {
           throw new Error(
-            data.error || "서버에서 요약에 실패했습니다. 잠시 후 다시 시도해 주세요."
+            "서버 오류 (HTTP " +
+            response.status +
+            "): " +
+            (data.error || "원인을 확인할 수 없습니다.")
           );
         }
 
@@ -628,12 +604,11 @@
           typeof data.summary !== "string"
         ) {
           throw new Error(
-            "요약 결과 형식이 올바르지 않습니다. API 코드를 확인해 주세요."
+            "요약 결과 형식이 올바르지 않습니다. api/summarize.js를 확인해 주세요."
           );
         }
 
         displayResult(data);
-
         showStatus("뉴스 요약이 완료되었습니다!", "success");
 
       } catch (error) {
@@ -672,18 +647,15 @@
 
       try {
         await navigator.clipboard.writeText(text);
-
         showStatus("뉴스 카드 내용을 복사했습니다!", "success");
 
       } catch (error) {
         const textArea = document.createElement("textarea");
-
         textArea.value = text;
         document.body.appendChild(textArea);
         textArea.select();
 
         const copied = document.execCommand("copy");
-
         textArea.remove();
 
         if (copied) {
@@ -701,49 +673,13 @@
       }
 
       showStatus(
-        "브라우저의 인쇄 기능에서 PDF로 저장할 수 있습니다. 인쇄 창에서 'PDF로 저장'을 선택해 주세요.",
+        "인쇄 창에서 'PDF로 저장'을 선택해 뉴스 카드를 저장해 주세요.",
         "info"
       );
 
       window.print();
     });
   </script>
-
-  <style>
-    @media print {
-      body {
-        background: #ffffff;
-      }
-
-      .header,
-      .intro,
-      .container > .panel:first-of-type,
-      .result-actions,
-      .footer,
-      .result-top,
-      .status {
-        display: none !important;
-      }
-
-      .container {
-        max-width: none;
-        padding: 0;
-      }
-
-      .result-panel,
-      .result-panel.visible {
-        display: block !important;
-        border: none;
-        box-shadow: none;
-      }
-
-      .news-card {
-        border: 1px solid #ddd;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-      }
-    }
-  </style>
 
 </body>
 </html>
