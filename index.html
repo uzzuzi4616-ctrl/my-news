@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
@@ -153,4 +154,288 @@
         .card-preview li {
             margin-bottom: 12px;
         }
+
+        .card-summary {
+            margin-top: 24px;
+            padding-top: 18px;
+            border-top: 1px solid #e6d7b8;
+            line-height: 1.8;
+            white-space: pre-wrap;
+        }
+
+        .actions {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+
+        .hint {
+            color: #6c7585;
+            font-size: 13px;
+            line-height: 1.6;
+        }
+
+        @media (max-width: 600px) {
+            .panel {
+                padding: 18px;
+            }
+
+            .card-preview {
+                padding: 24px;
+            }
+
+            .card-preview h3 {
+                font-size: 23px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <main class="container">
+
+        <header>
+            <h1>🐭 돈벌쥐 AI 뉴스 카드 생성기</h1>
+            <p>뉴스 원문을 입력하면 AI가 핵심 내용을 요약합니다.</p>
+        </header>
+
+        <section class="panel">
+            <h2>📰 뉴스 원문 입력</h2>
+
+            <!-- 뉴스 분류 기능 잠금 시작
+            <label for="category">뉴스 분류</label>
+            <select id="category">
+                <option value="general">일반 뉴스</option>
+                <option value="economy">경제</option>
+                <option value="technology">IT·기술</option>
+            </select>
+            뉴스 분류 기능 잠금 끝 -->
+
+            <label for="newsText">뉴스 원문</label>
+
+            <textarea
+                id="newsText"
+                placeholder="요약할 뉴스 원문을 여기에 붙여 넣어 주세요."
+            ></textarea>
+
+            <!-- 요약 스타일 기능 잠금 시작
+            <label for="tone">요약 스타일</label>
+            <select id="tone">
+                <option value="쉽고 간결하게">쉽고 간결하게</option>
+                <option value="전문적이고 정확하게">전문적이고 정확하게</option>
+                <option value="흥미롭고 친근하게">흥미롭고 친근하게</option>
+            </select>
+            요약 스타일 기능 잠금 끝 -->
+
+            <button id="summarizeBtn" class="primary">
+                ✨ AI 뉴스 요약하기
+            </button>
+
+            <div
+                id="status"
+                class="status"
+                role="status"
+                aria-live="polite"
+            ></div>
+
+            <p class="hint">
+                뉴스 원문을 40자 이상 입력해 주세요.
+            </p>
+        </section>
+
+        <section id="resultPanel" class="panel result">
+            <h2>📋 AI 요약 결과</h2>
+
+            <h3 id="resultTitle"></h3>
+
+            <h4>핵심 요점</h4>
+            <ul id="resultBullets"></ul>
+
+            <h4>한눈에 보는 요약</h4>
+            <p id="resultSummary" class="summary"></p>
+        </section>
+
+        <section id="cardPanel" class="panel result">
+            <h2>🎨 뉴스 카드 미리보기</h2>
+
+            <div id="newsCard" class="card-preview">
+                <span class="card-label">돈벌쥐 NEWS</span>
+
+                <h3 id="cardTitle"></h3>
+
+                <ul id="cardBullets"></ul>
+
+                <p id="cardSummary" class="card-summary"></p>
+            </div>
+
+            <div class="actions">
+                <button id="downloadBtn" class="secondary">
+                    💾 뉴스 카드 이미지 저장
+                </button>
+            </div>
+        </section>
+
+    </main>
+
+    <script src="https://cdn.jsdelivr.net/npm/html2canvas@1.4.1/dist/html2canvas.min.js"></script>
+
+    <script>
+        const newsText = document.getElementById("newsText");
+        const summarizeBtn = document.getElementById("summarizeBtn");
+        const statusBox = document.getElementById("status");
+
+        const resultPanel = document.getElementById("resultPanel");
+        const cardPanel = document.getElementById("cardPanel");
+
+        function showStatus(message, isError = false) {
+            statusBox.textContent = message;
+            statusBox.classList.toggle("error", isError);
+        }
+
+        function renderList(element, items) {
+            element.replaceChildren();
+
+            items.forEach((item) => {
+                const li = document.createElement("li");
+                li.textContent = item;
+                element.appendChild(li);
+            });
+        }
+
+        summarizeBtn.addEventListener("click", async () => {
+            const text = newsText.value.trim();
+
+            if (text.length < 40) {
+                showStatus(
+                    "뉴스 원문을 40자 이상 입력해 주세요.",
+                    true
+                );
+                return;
+            }
+
+            summarizeBtn.disabled = true;
+
+            showStatus("AI가 뉴스 내용을 분석하고 있습니다...");
+
+            resultPanel.style.display = "none";
+            cardPanel.style.display = "none";
+
+            try {
+                const response = await fetch("/api/summarize", {
+                    method: "POST",
+                    headers: {
+                        "Content-Type": "application/json"
+                    },
+                    body: JSON.stringify({
+                        text: text,
+                        tone: "쉽고 간결하게"
+                    })
+                });
+
+                const data = await response.json();
+
+                if (!response.ok) {
+                    throw new Error(
+                        data.error || "뉴스 요약 요청에 실패했습니다."
+                    );
+                }
+
+                if (
+                    typeof data.title !== "string" ||
+                    !Array.isArray(data.bullets) ||
+                    typeof data.summary !== "string"
+                ) {
+                    throw new Error(
+                        "AI 요약 결과의 형식이 올바르지 않습니다."
+                    );
+                }
+
+                document.getElementById("resultTitle").textContent =
+                    data.title;
+
+                renderList(
+                    document.getElementById("resultBullets"),
+                    data.bullets
+                );
+
+                document.getElementById("resultSummary").textContent =
+                    data.summary;
+
+                document.getElementById("cardTitle").textContent =
+                    data.title;
+
+                renderList(
+                    document.getElementById("cardBullets"),
+                    data.bullets
+                );
+
+                document.getElementById("cardSummary").textContent =
+                    data.summary;
+
+                resultPanel.style.display = "block";
+                cardPanel.style.display = "block";
+
+                showStatus("뉴스 요약이 완료되었습니다! 🎉");
+
+            } catch (error) {
+                console.error("뉴스 요약 오류:", error);
+
+                showStatus(
+                    "요약 실패: " + error.message +
+                    "\nAPI 키와 서버 설정을 확인해 주세요.",
+                    true
+                );
+
+            } finally {
+                summarizeBtn.disabled = false;
+            }
+        });
+
+        document.getElementById("downloadBtn")
+            .addEventListener("click", async () => {
+                const card = document.getElementById("newsCard");
+                const downloadBtn = document.getElementById("downloadBtn");
+
+                if (typeof html2canvas !== "function") {
+                    showStatus(
+                        "이미지 저장 라이브러리를 불러오지 못했습니다.",
+                        true
+                    );
+                    return;
+                }
+
+                downloadBtn.disabled = true;
+
+                showStatus("뉴스 카드 이미지를 만드는 중입니다...");
+
+                try {
+                    const canvas = await html2canvas(card, {
+                        scale: 2,
+                        backgroundColor: "#fff8e9"
+                    });
+
+                    const link = document.createElement("a");
+
+                    link.download = "돈벌쥐_AI_뉴스카드.png";
+                    link.href = canvas.toDataURL("image/png");
+
+                    link.click();
+
+                    showStatus("뉴스 카드 이미지가 저장되었습니다!");
+
+                } catch (error) {
+                    console.error("이미지 저장 오류:", error);
+
+                    showStatus(
+                        "이미지 저장에 실패했습니다. 다시 시도해 주세요.",
+                        true
+                    );
+
+                } finally {
+                    downloadBtn.disabled = false;
+                }
+            });
+    </script>
+</body>
+</html>
 ```
