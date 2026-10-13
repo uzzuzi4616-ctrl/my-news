@@ -80,10 +80,14 @@ const completion = await openai.chat.completions.create({
 "summary": "전체 요약"
 }
 `.trim(),
-        },
-        {
-          role: "user",
-          content: `
+},
+
+```
+    {
+      role: "user",
+      content: `
+```
+
 뉴스 분류: ${category || "일반"}
 
 뉴스 원문:
@@ -100,5 +104,53 @@ ${text.trim()}
   temperature: 0.3,
 });
 
-// 6. A
+// 6. AI 응답 확인
+const content = completion.choices?.[0]?.message?.content;
+
+if (!content) {
+  return res.status(502).json({
+    error: "AI가 요약 결과를 반환하지 않았습니다.",
+  });
+}
+
+// 7. JSON 결과 변환
+let result;
+
+try {
+  result = JSON.parse(content);
+} catch {
+  return res.status(502).json({
+    error: "AI 요약 결과를 해석할 수 없습니다.",
+  });
+}
+
+// 8. 결과 형식 확인
+if (
+  typeof result.title !== "string" ||
+  !Array.isArray(result.bullets) ||
+  typeof result.summary !== "string"
+) {
+  return res.status(502).json({
+    error: "AI 요약 결과의 형식이 올바르지 않습니다.",
+  });
+}
+
+// 9. 요약 결과 반환
+return res.status(200).json({
+  title: result.title,
+  bullets: result.bullets,
+  summary: result.summary,
+});
 ```
+
+} catch (error) {
+console.error("뉴스 요약 API 오류:", error);
+
+```
+return res.status(500).json({
+  error: "뉴스 요약 중 오류가 발생했습니다. Vercel 함수 로그를 확인해 주세요.",
+});
+```
+
+}
+}
