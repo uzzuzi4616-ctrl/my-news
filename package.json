@@ -1,12 +1,9 @@
 {
-  "name": "donbeol-news",
+  "name": "my-news",
   "version": "1.0.0",
-  "type": "module",
-  "scripts": {
-    "start": "node server.js"
-  },
+  "private": true,
+  "description": "돈벌쥐 AI 뉴스 카드 생성기",
   "dependencies": {
-    "dotenv": "^16.4.7",
-    "express": "^4.21.2"
+    "openai": "^5.0.0"
   }
 }
