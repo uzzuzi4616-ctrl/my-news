@@ -1,390 +1,62 @@
 <!DOCTYPE html>
-
 <html lang="ko">
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>돈벌쥐 - AI 뉴스 카드 생성기</title>
   <meta name="description" content="AI로 뉴스를 쉽고 간결하게 요약하고 뉴스 카드 콘텐츠를 만들어 보세요.">
-
   <style>
-    * {
-      box-sizing: border-box;
-    }
-
-    body {
-      margin: 0;
-      font-family: Arial, "Malgun Gothic", sans-serif;
-      background: #f5f7fb;
-      color: #202638;
-      line-height: 1.6;
-    }
-
-    button, input, textarea, select {
-      font: inherit;
-    }
-
-    button {
-      cursor: pointer;
-    }
-
-    .header {
-      background: #fff;
-      border-bottom: 1px solid #e8ebf2;
-      padding: 18px 20px;
-    }
-
-    .header-inner {
-      max-width: 1000px;
-      margin: 0 auto;
-      display: flex;
-      align-items: center;
-      gap: 12px;
-    }
-
-    .logo {
-      width: 48px;
-      height: 48px;
-      display: flex;
-      justify-content: center;
-      align-items: center;
-      background: #fff0c2;
-      border-radius: 15px;
-      font-size: 27px;
-    }
-
-    .brand h1 {
-      margin: 0;
-      font-size: 23px;
-      font-weight: 800;
-    }
-
-    .brand p {
-      margin: 2px 0 0;
-      font-size: 13px;
-      color: #7b8498;
-    }
-
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 30px 20px 60px;
-    }
-
-    .intro {
-      text-align: center;
-      margin: 10px 0 30px;
-    }
-
-    .intro h2 {
-      font-size: 30px;
-      line-height: 1.35;
-      margin: 0 0 12px;
-    }
-
-    .intro p {
-      color: #727b8f;
-      margin: 0;
-      font-size: 15px;
-    }
-
-    .highlight {
-      color: #6654e8;
-    }
-
-    .panel {
-      background: #fff;
-      border: 1px solid #e8ebf2;
-      border-radius: 20px;
-      padding: 25px;
-      margin-bottom: 24px;
-      box-shadow: 0 8px 25px rgba(40, 50, 80, 0.04);
-    }
-
-    .section-title {
-      margin: 0 0 18px;
-      font-size: 19px;
-      font-weight: 800;
-    }
-
-    .field {
-      margin-bottom: 20px;
-    }
-
-    .field label {
-      display: block;
-      margin-bottom: 8px;
-      font-size: 14px;
-      font-weight: 700;
-    }
-
-    textarea, select {
-      width: 100%;
-      border: 1px solid #dfe3ed;
-      border-radius: 12px;
-      background: #fff;
-      padding: 13px 14px;
-      color: #202638;
-      outline: none;
-    }
-
-    textarea:focus, select:focus {
-      border-color: #7564ef;
-      box-shadow: 0 0 0 3px rgba(117, 100, 239, 0.10);
-    }
-
-    textarea {
-      min-height: 220px;
-      resize: vertical;
-      line-height: 1.7;
-    }
-
-    .help {
-      margin-top: 7px;
-      font-size: 12px;
-      color: #858da0;
-    }
-
-    .two-columns {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 18px;
-    }
-
-    .primary-button {
-      width: 100%;
-      border: 0;
-      border-radius: 12px;
-      padding: 15px 20px;
-      background: #6654e8;
-      color: #fff;
-      font-size: 16px;
-      font-weight: 800;
-      transition: background 0.2s;
-    }
-
-    .primary-button:hover {
-      background: #5140d0;
-    }
-
-    .primary-button:disabled {
-      background: #a6a0d9;
-      cursor: wait;
-    }
-
-    .status {
-      display: none;
-      margin-top: 16px;
-      padding: 12px 14px;
-      border-radius: 10px;
-      font-size: 14px;
-      overflow-wrap: anywhere;
-      white-space: pre-wrap;
-    }
-
-    .status.show {
-      display: block;
-    }
-
-    .status.info {
-      background: #f0efff;
-      color: #5140d0;
-    }
-
-    .status.error {
-      background: #fff0f0;
-      color: #c0392b;
-    }
-
-    .status.success {
-      background: #eaf9f0;
-      color: #187744;
-    }
-
-    .result-panel {
-      display: none;
-    }
-
-    .result-panel.visible {
-      display: block;
-    }
-
-    .result-top {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      gap: 12px;
-      margin-bottom: 18px;
-    }
-
-    .result-top h2 {
-      margin: 0;
-      font-size: 20px;
-    }
-
-    .badge {
-      display: inline-block;
-      padding: 5px 10px;
-      border-radius: 20px;
-      background: #fff0c2;
-      color: #8a6100;
-      font-size: 12px;
-      font-weight: 800;
-    }
-
-    .news-card {
-      padding: 25px;
-      border-radius: 18px;
-      background: linear-gradient(145deg, #fffdf5, #f3f0ff);
-      border: 1px solid #eee8ff;
-    }
-
-    .news-card-label {
-      display: inline-block;
-      background: #6654e8;
-      color: #fff;
-      border-radius: 7px;
-      padding: 5px 10px;
-      font-size: 12px;
-      font-weight: 800;
-      margin-bottom: 15px;
-    }
-
-    .news-card h3 {
-      font-size: 25px;
-      line-height: 1.45;
-      margin: 0 0 20px;
-      overflow-wrap: anywhere;
-    }
-
-    .news-card h4 {
-      font-size: 16px;
-      margin: 20px 0 10px;
-    }
-
-    .news-card ul {
-      padding-left: 22px;
-      margin: 0;
-    }
-
-    .news-card li {
-      margin-bottom: 9px;
-      overflow-wrap: anywhere;
-    }
-
-    .summary-text {
-      white-space: pre-wrap;
-      overflow-wrap: anywhere;
-    }
-
-    .card-footer {
-      margin-top: 25px;
-      padding-top: 15px;
-      border-top: 1px solid #e1dcef;
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      color: #77738a;
-      font-size: 12px;
-    }
-
-    .secondary-button {
-      border: 1px solid #dfe3ed;
-      border-radius: 10px;
-      background: #fff;
-      color: #34394a;
-      padding: 10px 14px;
-      font-weight: 700;
-    }
-
-    .secondary-button:hover {
-      background: #f5f6fa;
-    }
-
-    .result-actions {
-      display: flex;
-      gap: 10px;
-      flex-wrap: wrap;
-      margin-top: 16px;
-    }
-
-    .footer {
-      text-align: center;
-      padding: 20px;
-      color: #9098a9;
-      font-size: 12px;
-    }
-
-    @media (max-width: 600px) {
-      .container {
-        padding: 22px 14px 40px;
-      }
-
-      .intro h2 {
-        font-size: 25px;
-      }
-
-      .panel {
-        padding: 18px;
-        border-radius: 16px;
-      }
-
-      .two-columns {
-        grid-template-columns: 1fr;
-        gap: 0;
-      }
-
-      .news-card {
-        padding: 18px;
-      }
-
-      .news-card h3 {
-        font-size: 21px;
-      }
-
-      .result-top {
-        align-items: flex-start;
-        flex-direction: column;
-      }
-    }
-
-    @media print {
-      body {
-        background: #fff;
-      }
-
-      .header,
-      .intro,
-      .input-panel,
-      .result-actions,
-      .footer,
-      .result-top,
-      .status {
-        display: none !important;
-      }
-
-      .container {
-        max-width: none;
-        padding: 0;
-      }
-
-      .result-panel,
-      .result-panel.visible {
-        display: block !important;
-        border: none;
-        box-shadow: none;
-      }
-
-      .news-card {
-        border: 1px solid #ddd;
-        print-color-adjust: exact;
-        -webkit-print-color-adjust: exact;
-      }
-    }
+    * { box-sizing: border-box; }
+    body { margin: 0; font-family: Arial, "Malgun Gothic", sans-serif; background: #f5f7fb; color: #202638; line-height: 1.6; }
+    button, input, textarea, select { font: inherit; }
+    button { cursor: pointer; }
+    .header { background: #fff; border-bottom: 1px solid #e8ebf2; padding: 18px 20px; }
+    .header-inner { max-width: 1000px; margin: 0 auto; display: flex; align-items: center; gap: 12px; }
+    .logo { width: 48px; height: 48px; display: flex; justify-content: center; align-items: center; background: #fff0c2; border-radius: 15px; font-size: 27px; }
+    .brand h1 { margin: 0; font-size: 23px; font-weight: 800; }
+    .brand p { margin: 2px 0 0; font-size: 13px; color: #7b8498; }
+    .container { max-width: 1000px; margin: 0 auto; padding: 30px 20px 60px; }
+    .intro { text-align: center; margin: 10px 0 30px; }
+    .intro h2 { font-size: 30px; line-height: 1.35; margin: 0 0 12px; }
+    .intro p { color: #727b8f; margin: 0; font-size: 15px; }
+    .highlight { color: #6654e8; }
+    .panel { background: #fff; border: 1px solid #e8ebf2; border-radius: 20px; padding: 25px; margin-bottom: 24px; box-shadow: 0 8px 25px rgba(40, 50, 80, 0.04); }
+    .section-title { margin: 0 0 18px; font-size: 19px; font-weight: 800; }
+    .field { margin-bottom: 20px; }
+    .field label { display: block; margin-bottom: 8px; font-size: 14px; font-weight: 700; }
+    textarea, select { width: 100%; border: 1px solid #dfe3ed; border-radius: 12px; background: #fff; padding: 13px 14px; color: #202638; outline: none; }
+    textarea:focus, select:focus { border-color: #7564ef; box-shadow: 0 0 0 3px rgba(117, 100, 239, 0.10); }
+    textarea { min-height: 220px; resize: vertical; line-height: 1.7; }
+    .help { margin-top: 7px; font-size: 12px; color: #858da0; }
+    .two-columns { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .primary-button { width: 100%; border: 0; border-radius: 12px; padding: 15px 20px; background: #6654e8; color: #fff; font-size: 16px; font-weight: 800; transition: background 0.2s; }
+    .primary-button:hover { background: #5140d0; }
+    .primary-button:disabled { background: #a6a0d9; cursor: wait; }
+    .status { display: none; margin-top: 16px; padding: 12px 14px; border-radius: 10px; font-size: 14px; overflow-wrap: anywhere; white-space: pre-wrap; }
+    .status.show { display: block; }
+    .status.info { background: #f0efff; color: #5140d0; }
+    .status.error { background: #fff0f0; color: #c0392b; }
+    .status.success { background: #eaf9f0; color: #187744; }
+    .result-panel { display: none; }
+    .result-panel.visible { display: block; }
+    .result-top { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 18px; }
+    .result-top h2 { margin: 0; font-size: 20px; }
+    .badge { display: inline-block; padding: 5px 10px; border-radius: 20px; background: #fff0c2; color: #8a6100; font-size: 12px; font-weight: 800; }
+    .news-card { padding: 25px; border-radius: 18px; background: linear-gradient(145deg, #fffdf5, #f3f0ff); border: 1px solid #eee8ff; }
+    .news-card-label { display: inline-block; background: #6654e8; color: #fff; border-radius: 7px; padding: 5px 10px; font-size: 12px; font-weight: 800; margin-bottom: 15px; }
+    .news-card h3 { font-size: 25px; line-height: 1.45; margin: 0 0 20px; overflow-wrap: anywhere; }
+    .news-card h4 { font-size: 16px; margin: 20px 0 10px; }
+    .news-card ul { padding-left: 22px; margin: 0; }
+    .news-card li { margin-bottom: 9px; overflow-wrap: anywhere; }
+    .summary-text { white-space: pre-wrap; overflow-wrap: anywhere; }
+    .card-footer { margin-top: 25px; padding-top: 15px; border-top: 1px solid #e1dcef; display: flex; justify-content: space-between; gap: 10px; color: #77738a; font-size: 12px; }
+    .secondary-button { border: 1px solid #dfe3ed; border-radius: 10px; background: #fff; color: #34394a; padding: 10px 14px; font-weight: 700; }
+    .secondary-button:hover { background: #f5f6fa; }
+    .result-actions { display: flex; gap: 10px; flex-wrap: wrap; margin-top: 16px; }
+    .footer { text-align: center; padding: 20px; color: #9098a9; font-size: 12px; }
+    @media (max-width: 600px) { .container { padding: 22px 14px 40px; } .intro h2 { font-size: 25px; } .panel { padding: 18px; border-radius: 16px; } .two-columns { grid-template-columns: 1fr; gap: 0; } .news-card { padding: 18px; } .news-card h3 { font-size: 21px; } .result-top { align-items: flex-start; flex-direction: column; } }
   </style>
-
 </head>
-
 <body>
   <header class="header">
     <div class="header-inner">
@@ -398,288 +70,128 @@
 
   <main class="container">
     <section class="intro">
-      <h2>
-        복잡한 뉴스를<br>
-        <span class="highlight">쉽고 빠르게 콘텐츠로!</span>
-      </h2>
-      <p>
-        뉴스 내용을 입력하면 AI가 핵심을 요약하고<br>
-        뉴스 카드 형태로 정리해 줍니다.
-      </p>
+      <h2>복잡한 뉴스를<br><span class="highlight">쉽고 빠르게 콘텐츠로!</span></h2>
+      <p>뉴스 내용을 입력하면 AI가 핵심을 요약하고<br>뉴스 카드 형태로 정리해 줍니다.</p>
     </section>
 
-```
-<section class="panel input-panel">
-  <h2 class="section-title">📰 뉴스 내용 입력</h2>
+    <section class="panel input-panel">
+      <h2 class="section-title">📰 뉴스 내용 입력</h2>
+      <form id="newsForm">
+        <div class="field">
+          <label for="newsText">뉴스 원문</label>
+          <textarea id="newsText" name="newsText" placeholder="요약할 뉴스 기사 내용을 여기에 붙여 넣어 주세요." required></textarea>
+          <div class="help">기사 제목과 본문을 함께 입력하면 더욱 편리합니다.</div>
+        </div>
+        <div class="two-columns">
+          <div class="field">
+            <label for="category">뉴스 분류</label>
+            <select id="category" name="category">
+              <option value="경제">경제</option>
+              <option value="정치">정치</option>
+              <option value="사회">사회</option>
+              <option value="IT·AI">IT · AI</option>
+              <option value="국제">국제</option>
+              <option value="생활">생활</option>
+              <option value="연예">연예</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="tone">요약 스타일</label>
+            <select id="tone" name="tone">
+              <option value="중립적인 뉴스 매체 톤">중립적인 뉴스 매체 톤</option>
+              <option value="친근하고 캐주얼한 블로그 톤">친근하고 캐주얼한 블로그 톤</option>
+              <option value="위트 있고 유머러스한 톤">위트 있고 유머러스한 톤</option>
+            </select>
+          </div>
+        </div>
+        <button type="submit" id="submitBtn" class="primary-button">✨ AI 뉴스 요약 생성하기</button>
+      </form>
+      <div id="statusMessage" class="status"></div>
+    </section>
 
-  <form id="newsForm">
-    <div class="field">
-      <label for="newsText">뉴스 원문</label>
-      <textarea
-        id="newsText"
-        name="newsText"
-        placeholder="요약할 뉴스 기사 내용을 여기에 붙여 넣어 주세요."
-        required
-      ></textarea>
-      <div class="help">
-        기사 제목과 본문을 함께 입력하면 더욱 편리합니다.
+    <section id="resultPanel" class="panel result-panel">
+      <div class="result-top">
+        <h2>✨ 생성 결과</h2>
+        <span id="resultBadge" class="badge">경제</span>
       </div>
-    </div>
-
-    <div class="two-columns">
-      <div class="field">
-        <label for="category">뉴스 분류</label>
-        <select id="category" name="category">
-          <option value="경제">경제</option>
-          <option value="정치">정치</option>
-          <option value="사회">사회</option>
-          <option value="IT·AI">IT · AI</option>
-          <option value="국제">국제</option>
-          <option value="생활">생활</option>
-          <option value="연예">연예</option>
-          <option value="스포츠">스포츠</option>
-          <option value="일반" selected>일반</option>
-        </select>
+      <div class="news-card">
+        <span class="news-card-label">SUMMARY</span>
+        <h3 id="cardTitle">뉴스 요약 제목이 여기에 표시됩니다.</h3>
+        <h4>📋 핵심 요약</h4>
+        <div id="cardSummary" class="summary-text">핵심 내용 리스트가 생성됩니다.</div>
+        <div class="card-footer">
+          <span>돈벌쥐 AI 뉴스레터</span>
+          <span id="cardDate">2026. 10. 14</span>
+        </div>
       </div>
-
-      <div class="field">
-        <label for="tone">요약 스타일</label>
-        <select id="tone" name="tone">
-          <option value="쉽고 간결하게" selected>쉽고 간결하게</option>
-          <option value="핵심 숫자 중심으로">핵심 숫자 중심으로</option>
-          <option value="초보자도 이해하기 쉽게">초보자도 이해하기 쉽게</option>
-          <option value="중립적인 뉴스 문체로">중립적인 뉴스 문체로</option>
-        </select>
-      </div>
-    </div>
-
-    <button type="submit" class="primary-button" id="generateButton">
-      ✨ AI 뉴스 요약 생성하기
-    </button>
-
-    <div id="status" class="status" role="status" aria-live="polite"></div>
-  </form>
-</section>
-
-<section class="panel result-panel" id="resultPanel">
-  <div class="result-top">
-    <h2>🎨 AI 뉴스 카드 결과</h2>
-    <span class="badge">AI SUMMARY</span>
-  </div>
-
-  <article class="news-card" id="newsCard">
-    <div class="news-card-label">돈벌쥐 NEWS</div>
-
-    <h3 id="resultTitle"></h3>
-
-    <h4>핵심 요점</h4>
-    <ul id="resultBullets"></ul>
-
-    <h4>한눈에 보는 뉴스</h4>
-    <p class="summary-text" id="resultSummary"></p>
-
-    <div class="card-footer">
-      <span>돈벌쥐 AI 뉴스 카드</span>
-      <span>핵심 정보 요약</span>
-    </div>
-  </article>
-
-  <div class="result-actions">
-    <button type="button" class="secondary-button" id="copyButton">
-      📋 결과 복사하기
-    </button>
-
-    <button type="button" class="secondary-button" id="downloadButton">
-      💾 카드 이미지 저장
-    </button>
-  </div>
-</section>
-```
-
+    </section>
   </main>
 
   <footer class="footer">
-    돈벌쥐 AI 뉴스 카드 생성기 · AI 요약은 원문과 대조해 확인해 주세요.
+    <p>&copy; 2026 돈벌쥐. All rights reserved.</p>
   </footer>
 
   <script>
-    const newsForm = document.getElementById("newsForm");
-    const newsText = document.getElementById("newsText");
-    const category = document.getElementById("category");
-    const tone = document.getElementById("tone");
+    document.getElementById('newsForm').addEventListener('submit', async function(e) {
+      e.preventDefault();
+      const submitBtn = document.getElementById('submitBtn');
+      const statusMessage = document.getElementById('statusMessage');
+      const resultPanel = document.getElementById('resultPanel');
+      
+      const text = document.getElementById('newsText').value;
+      const category = document.getElementById('category').value;
+      const tone = document.getElementById('tone').value;
 
-    const generateButton = document.getElementById("generateButton");
-    const statusBox = document.getElementById("status");
-    const resultPanel = document.getElementById("resultPanel");
-
-    const resultTitle = document.getElementById("resultTitle");
-    const resultBullets = document.getElementById("resultBullets");
-    const resultSummary = document.getElementById("resultSummary");
-
-    const copyButton = document.getElementById("copyButton");
-    const downloadButton = document.getElementById("downloadButton");
-
-    let latestResult = null;
-
-    function showStatus(message, type) {
-      statusBox.textContent = message;
-      statusBox.className = "status show " + type;
-    }
-
-    function displayResult(result) {
-      resultTitle.textContent = result.title;
-      resultBullets.replaceChildren();
-
-      result.bullets.forEach(function (bullet) {
-        const li = document.createElement("li");
-        li.textContent = bullet;
-        resultBullets.appendChild(li);
-      });
-
-      resultSummary.textContent = result.summary;
-      resultPanel.classList.add("visible");
-      latestResult = result;
-
-      resultPanel.scrollIntoView({
-        behavior: "smooth",
-        block: "start"
-      });
-    }
-
-    newsForm.addEventListener("submit", async function (event) {
-      event.preventDefault();
-
-      const text = newsText.value.trim();
-
-      if (!text) {
-        showStatus("요약할 뉴스 내용을 입력해 주세요.", "error");
-        newsText.focus();
-        return;
-      }
-
-      generateButton.disabled = true;
-      generateButton.textContent = "⏳ AI가 뉴스를 요약하고 있습니다...";
-
-      showStatus("뉴스를 분석하고 있습니다. 잠시만 기다려 주세요.", "info");
-      resultPanel.classList.remove("visible");
+      submitBtn.disabled = true;
+      statusMessage.className = "status show info";
+      statusMessage.innerText = "🔊 AI가 뉴스 카드를 열심히 요약하고 있습니다. 잠시만 기다려 주세요...";
+      resultPanel.classList.remove('visible');
 
       try {
-        const response = await fetch("/api/summarize", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json"
-          },
-          body: JSON.stringify({
-            text: text,
-            category: category.value,
-            tone: tone.value
-          })
+        // 여기에 원래 OPENAI_API_KEY 파일에 잘못 들어가 있던 요청 코드가 정상적으로 합쳐졌습니다.
+        const response = await fetch('/api/summarize', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ text, category, tone })
         });
 
-        const responseText = await response.text();
-        let data = {};
-
-        try {
-          data = responseText ? JSON.parse(responseText) : {};
-        } catch {
-          throw new Error(
-            "서버가 JSON 형식으로 응답하지 않았습니다. HTTP 상태 코드: " +
-            response.status +
-            ". Vercel 서버 로그를 확인해 주세요."
-          );
-        }
+        const data = await response.json();
 
         if (!response.ok) {
-          throw new Error(
-            "서버 오류 (HTTP " +
-            response.status +
-            "): " +
-            (data.error || "원인을 확인할 수 없습니다.")
-          );
+          throw new Error(data.error || '서버 오류가 발생했습니다.');
         }
 
-        if (
-          typeof data.title !== "string" ||
-          !Array.isArray(data.bullets) ||
-          typeof data.summary !== "string"
-        ) {
-          throw new Error(
-            "요약 결과 형식이 올바르지 않습니다. api/summarize.js를 확인해 주세요."
-          );
-        }
-
-        displayResult(data);
-        showStatus("뉴스 요약이 완료되었습니다!", "success");
-
-      } catch (error) {
-        console.error("뉴스 요약 오류:", error);
-
-        showStatus(
-          error.message || "오류가 발생했습니다. 잠시 후 다시 시도해 주세요.",
-          "error"
-        );
-
-      } finally {
-        generateButton.disabled = false;
-        generateButton.textContent = "✨ AI 뉴스 요약 생성하기";
-      }
-    });
-
-    copyButton.addEventListener("click", async function () {
-      if (!latestResult) {
-        showStatus("먼저 뉴스 요약을 생성해 주세요.", "error");
-        return;
-      }
-
-      const text = [
-        latestResult.title,
-        "",
-        "핵심 요점",
-        ...latestResult.bullets.map(function (item, index) {
-          return (index + 1) + ". " + item;
-        }),
-        "",
-        "한눈에 보는 뉴스",
-        latestResult.summary,
-        "",
-        "돈벌쥐 AI 뉴스 카드"
-      ].join("\n");
-
-      try {
-        await navigator.clipboard.writeText(text);
-        showStatus("뉴스 카드 내용을 복사했습니다!", "success");
-
-      } catch (error) {
-        const textArea = document.createElement("textarea");
-        textArea.value = text;
-        document.body.appendChild(textArea);
-        textArea.select();
-
-        const copied = document.execCommand("copy");
-        textArea.remove();
-
-        if (copied) {
-          showStatus("뉴스 카드 내용을 복사했습니다!", "success");
+        document.getElementById('cardTitle').innerText = data.title || '제목 없음';
+        
+        // 요약 배열 처리
+        const summaryDiv = document.getElementById('cardSummary');
+        summaryDiv.innerHTML = '';
+        if (Array.isArray(data.summary)) {
+          const ul = document.createElement('ul');
+          data.summary.forEach(item => {
+            const li = document.createElement('li');
+            li.innerText = item;
+            ul.appendChild(li);
+          });
+          summaryDiv.appendChild(ul);
         } else {
-          showStatus("복사에 실패했습니다. 내용을 직접 선택해 주세요.", "error");
+          summaryDiv.innerText = data.summary || '요약 내용 없음';
         }
+
+        document.getElementById('resultBadge').innerText = category;
+        document.getElementById('cardDate').innerText = new Date().toLocaleDateString('ko-KR');
+        
+        statusMessage.className = "status show success";
+        statusMessage.innerText = "✅ 성공적으로 요약되었습니다!";
+        resultPanel.classList.add('visible');
+
+      } catch (error) {
+        statusMessage.className = "status show error";
+        statusMessage.innerText = `❌ 오류 발생: ${error.message}`;
+      } finally {
+        submitBtn.disabled = false;
       }
-    });
-
-    downloadButton.addEventListener("click", function () {
-      if (!latestResult) {
-        showStatus("먼저 뉴스 요약을 생성해 주세요.", "error");
-        return;
-      }
-
-      showStatus(
-        "인쇄 창에서 'PDF로 저장'을 선택해 뉴스 카드를 저장해 주세요.",
-        "info"
-      );
-
-      window.print();
     });
   </script>
-
 </body>
 </html>
