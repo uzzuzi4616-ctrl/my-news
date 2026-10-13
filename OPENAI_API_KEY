@@ -1,1 +1,10 @@
-
+{
+"name": "my-news",
+"version": "1.0.0",
+"private": true,
+"description": "돈벌쥐 AI 뉴스 카드 생성기",
+"type": "module",
+"dependencies": {
+"openai": "^5.0.0"
+}
+}
