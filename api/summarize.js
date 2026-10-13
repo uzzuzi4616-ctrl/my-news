@@ -1,8 +1,4 @@
-import OpenAI from "openai";
-
-const openai = new OpenAI({
-apiKey: process.env.OPENAI_API_KEY,
-});
+import { GoogleGenAI } from "@google/genai";
 
 export default async function handler(req, res) {
 // 1. POST 요청만 허용
@@ -12,10 +8,12 @@ error: "POST 요청만 허용됩니다.",
 });
 }
 
-// 2. API 키 확인
-if (!process.env.OPENAI_API_KEY) {
+// 2. Gemini API 키 확인
+const apiKey = process.env.GEMINI_API_KEY;
+
+if (!apiKey) {
 return res.status(500).json({
-error: "OPENAI_API_KEY 환경 변수가 설정되지 않았습니다.",
+error: "GEMINI_API_KEY 환경 변수가 설정되지 않았습니다.",
 });
 }
 
@@ -48,94 +46,99 @@ const styles = {
 const selectedTone =
   styles[tone] || styles["쉽고 간결하게"];
 
-// 5. AI 뉴스 요약 요청
-const completion = await openai.chat.completions.create({
-  model: "gpt-4o-mini",
+const selectedCategory =
+  typeof category === "string" && category.trim()
+    ? category.trim()
+    : "일반 뉴스";
 
-  messages: [
-    {
-      role: "system",
-      content: `
+// 5. Gemini AI 클라이언트 생성
+const ai = new GoogleGenAI({
+  apiKey,
+});
+
+// 6. AI 뉴스 요약 요청
+const response = await ai.models.generateContent({
+  model: "gemini-3.8-flash",
+
+  contents: `
 ```
 
 당신은 한국어 뉴스 요약 전문가입니다.
 
-다음 규칙을 지키세요.
+다음 규칙을 반드시 지키세요.
 
-1. 원문에 없는 사실을 만들어내지 마세요.
-2. 핵심 내용을 정확하게 요약하세요.
-3. 제목은 짧고 명확하게 작성하세요.
-4. 핵심 요점은 3개에서 5개로 작성하세요.
-5. 뉴스 분류를 요약에 참고하세요.
-6. ${selectedTone}
+1. 반드시 한국어로 작성하세요.
+2. 원문에 없는 사실이나 수치를 만들어 내지 마세요.
+3. 뉴스의 핵심 내용을 정확하게 요약하세요.
+4. 제목은 명확하고 간결하게 작성하세요.
+5. 핵심 요점은 3개로 작성하세요.
+6. 요약문은 독자가 쉽게 이해할 수 있도록 작성하세요.
+7. 원문에 없는 정보를 추측해서 추가하지 마세요.
+8. 결과는 반드시 지정된 JSON 형식으로만 반환하세요.
 
-반드시 다음 JSON 형식으로만 응답하세요.
-{
-"title": "뉴스 제목",
-"bullets": [
-"핵심 내용 1",
-"핵심 내용 2",
-"핵심 내용 3"
-],
-"summary": "전체 요약"
-}
-`.trim(),
-},
+뉴스 분야: ${selectedCategory}
+
+요약 스타일:
+${selectedTone}
+
+요약할 뉴스 원문:
+${text}
+`,
 
 ```
-    {
-      role: "user",
-      content: `
-```
+  config: {
+    responseMimeType: "application/json",
 
-뉴스 분류: ${category || "일반"}
-
-뉴스 원문:
-${text.trim()}
-`.trim(),
-},
-],
-
-```
-  response_format: {
-    type: "json_object",
+    responseSchema: {
+      type: "OBJECT",
+      properties: {
+        title: {
+          type: "STRING",
+          description: "뉴스의 핵심을 담은 제목",
+        },
+        bullets: {
+          type: "ARRAY",
+          items: {
+            type: "STRING",
+          },
+          description: "뉴스의 핵심 요점 3개",
+        },
+        summary: {
+          type: "STRING",
+          description: "뉴스 전체를 이해하기 쉽게 요약한 문단",
+        },
+      },
+      required: ["title", "bullets", "summary"],
+    },
   },
-
-  temperature: 0.3,
 });
 
-// 6. AI 응답 확인
-const content = completion.choices?.[0]?.message?.content;
+// 7. AI 응답 확인
+const resultText = response.text;
 
-if (!content) {
-  return res.status(502).json({
-    error: "AI가 요약 결과를 반환하지 않았습니다.",
-  });
+if (!resultText) {
+  throw new Error("Gemini에서 요약 결과를 반환하지 않았습니다.");
 }
 
-// 7. JSON 결과 변환
+// 8. JSON 변환
 let result;
 
 try {
-  result = JSON.parse(content);
+  result = JSON.parse(resultText);
 } catch {
-  return res.status(502).json({
-    error: "AI 요약 결과를 해석할 수 없습니다.",
-  });
+  throw new Error("AI 응답을 JSON으로 변환하지 못했습니다.");
 }
 
-// 8. 결과 형식 확인
+// 9. 응답 데이터 검증
 if (
   typeof result.title !== "string" ||
   !Array.isArray(result.bullets) ||
   typeof result.summary !== "string"
 ) {
-  return res.status(502).json({
-    error: "AI 요약 결과의 형식이 올바르지 않습니다.",
-  });
+  throw new Error("AI 응답의 데이터 형식이 올바르지 않습니다.");
 }
 
-// 9. 요약 결과 반환
+// 10. 프런트엔드로 결과 반환
 return res.status(200).json({
   title: result.title,
   bullets: result.bullets,
@@ -144,11 +147,16 @@ return res.status(200).json({
 ```
 
 } catch (error) {
-console.error("뉴스 요약 API 오류:", error);
+// 서버 로그에서 상세 오류 확인
+console.error("Gemini 뉴스 요약 오류:", error);
 
 ```
 return res.status(500).json({
-  error: "뉴스 요약 중 오류가 발생했습니다. Vercel 함수 로그를 확인해 주세요.",
+  error: "뉴스 요약 처리 중 오류가 발생했습니다.",
+  details:
+    process.env.NODE_ENV === "production"
+      ? undefined
+      : error.message,
 });
 ```
 
