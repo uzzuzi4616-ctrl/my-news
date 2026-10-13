@@ -1,49 +1,39 @@
-```javascript
-import OpenAI from "openai";
+```html
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-export default async function handler(req, res) {
-  // POST 요청만 허용
-  if (req.method !== "POST") {
-    return res.status(405).json({
-      error: "POST 요청만 허용됩니다."
-    });
-  }
+  <title>돈벌쥐 - AI 뉴스 카드 생성기</title>
 
-  // API 키 확인
-  if (!process.env.OPENAI_API_KEY) {
-    return res.status(500).json({
-      error: "OPENAI_API_KEY 환경 변수가 설정되지 않았습니다."
-    });
-  }
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 
-  try {
-    const { text, category, tone } = req.body || {};
+  <link
+    href="https://fonts.googleapis.com/css2?family=Pretendard:wght@400;500;600;700;800;900&display=swap"
+    rel="stylesheet"
+  >
 
-    // 뉴스 본문 확인
-    if (!text || typeof text !== "string" || !text.trim()) {
-      return res.status(400).json({
-        error: "요약할 뉴스 본문을 입력해 주세요."
-      });
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+
+  <style>
+    :root {
+      --blue: #2563eb;
+      --ink: #111827;
+      --muted: #6b7280;
+      --line: #e5e7eb;
+      --bg: #f3f6fb;
     }
 
-    // HTML에서 선택하는 요약 스타일 4가지
-    const styles = {
-      "쉽고 간결하게":
-        "핵심만 짧고 명확하게 요약하세요. 불필요한 설명은 줄이고 누구나 빠르게 이해할 수 있게 작성하세요.",
+    * {
+      box-sizing: border-box;
+    }
 
-      "핵심 숫자 중심으로":
-        "금액, 비율, 날짜, 통계 등 중요한 숫자를 중심으로 요약하세요. 숫자가 의미하는 바를 설명하고 기사에 없는 숫자는 만들지 마세요.",
-
-      "초보자도 이해하기 쉽게":
-        "전문용어와 어려운 표현을 쉬운 말로 풀어서 설명하세요. 필요한 경우 배경과 맥락도 덧붙여 뉴스에 익숙하지 않은 사람도 이해할 수 있게 작성하세요.",
-
-      "중립적인 뉴스 문체로":
-        "감정적이거나 과장된 표현을 사용하지 말고 확인된 사실을 중심으로 객관적이고 중립적으로 요약하세요."
-    };
-
-    // 선택한 스타일에 맞는 지침 적용
-    const selectedStyle =
-      styles[tone] || styles["쉽고 간결하게"];
-
-    // Ope
+    body {
+      margin: 0;
+      background: var(--bg);
+      color: var(--ink);
+      font-family: Pretendard, system-ui, sans-serif;
+    }
 ```
