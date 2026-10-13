@@ -1,91 +1,114 @@
+html
 <!DOCTYPE html>
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>뉴스 한 번에 | AI 뉴스 제작기</title>
+    <title>AI 뉴스 한 번에 | 자동 생성기</title>
     <style>
         body { font-family: -apple-system, BlinkMacSystemFont, "Malgun Gothic", sans-serif; background-color: #f5f6f7; margin: 0; padding: 20px; color: #333; }
         .container { max-width: 650px; margin: 0 auto; background: #fff; padding: 30px; border-radius: 8px; box-shadow: 0 4px 6px rgba(0,0,0,0.1); }
         h1 { font-size: 24px; text-align: center; color: #111; margin-bottom: 25px; }
         .form-group { margin-bottom: 15px; }
         label { display: block; font-weight: bold; margin-bottom: 5px; font-size: 14px; }
-        input, textarea { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
-        textarea { height: 100px; resize: none; }
-        button { width: 100%; padding: 12px; background-color: #03cf5d; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; }
+        input { width: 100%; padding: 12px; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; font-size: 14px; }
+        button { width: 100%; padding: 12px; background-color: #03cf5d; color: white; border: none; border-radius: 4px; font-size: 16px; font-weight: bold; cursor: pointer; margin-top: 10px; }
         button:hover { background-color: #02b852; }
+        .loading { display: none; text-align: center; font-weight: bold; color: #666; margin: 20px 0; }
         
         /* 뉴스 결과창 디자인 (네이버 뉴스 스타일) */
         #newsResult { display: none; margin-top: 30px; border-top: 2px solid #111; padding-top: 20px; }
         .news-title { font-size: 26px; font-weight: bold; line-height: 1.4; color: #000; margin-bottom: 15px; }
         .news-info { font-size: 12px; color: #666; margin-bottom: 20px; padding-bottom: 10px; border-bottom: 1px solid #e5e5e5; }
-        .news-img { width: 100%; max-height: 400px; object-fit: cover; border-radius: 4px; margin-bottom: 20px; display: none; }
         .news-content { font-size: 16px; line-height: 1.8; color: #333; text-align: justify; white-space: pre-wrap; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>📰 뉴스 한 번에 만들기</h1>
+    <h1>🤖 AI 뉴스 자동 생성기</h1>
     
     <div class="form-group">
-        <label for="titleInput">뉴스 제목</label>
-        <input type="text" id="titleInput" placeholder="예: [속보] 인스타 수익화, 이제 개인이 하루 만에 다 한다">
+        <label for="keywordInput">원하는 뉴스 주제 (단어나 키워드)</label>
+        <input type="text" id="keywordInput" placeholder="예: 인스타 카드뉴스 수익화 비밀, 주4일제 전격 시행">
     </div>
     
-    <div class="form-group">
-        <label for="imgInput">이미지 링크 (URL)</label>
-        <input type="text" id="imgInput" placeholder="인터넷 이미지 주소를 넣으세요 (비워두면 이미지 없음)">
-    </div>
-    
-    <div class="form-group">
-        <label for="contentInput">뉴스 본문 내용</label>
-        <textarea id="contentInput" placeholder="여기에 들어갈 뉴스 기사 본문을 자유롭게 적어보세요."></textarea>
-    </div>
-    
-    <button onclick="generateNews()">뉴스 기사 생성하기</button>
+    <button onclick="generateAINews()">AI 뉴스로 자동 만들기</button>
+    <div class="loading" id="loadingText">⏳ AI 기자가 기사를 작성하는 중입니다... 잠시만 기다려주세요 (약 5초)</div>
 
     <!-- 결과 화면 -->
     <div id="newsResult">
         <div class="news-title" id="resTitle"></div>
-        <div class="news-info">기사입력 : <span id="resDate"></span> | 언론사 속보팀</div>
-        <img class="news-img" id="resImg" src="" alt="뉴스 이미지">
+        <div class="news-info">기사입력 : <span id="resDate"></span> | AI 속보 전문 기자</div>
         <div class="news-content" id="resContent"></div>
     </div>
 </div>
 
 <script>
-    function generateNews() {
-        const title = document.getElementById('titleInput').value;
-        const img = document.getElementById('imgInput').value;
-        const content = document.getElementById('contentInput').value;
+    // 사용자님의 진짜 OpenAI API Key 연동 완료
+    const OPENAI_API_KEY = 'sk-proj-3DPHuqbKy9LLKIkyDY9HAMgU1sifQ1KldD1itMhZ2yYwXGNLUn7omOnyb67Uiw1G6X8BTtGvOT1T3BBlbkFJMTubm_cL3BYox0ykIkEBKb68BeDVt1NTESTO54KlrecoSQuEYmthqZjwUJfFdO04KtH3UPQQA';
+
+    async function generateAINews() {
+        const keyword = document.getElementById('keywordInput').value;
+        const loadingText = document.getElementById('loadingText');
+        const newsResult = document.getElementById('newsResult');
         
-        if(!title || !content) {
-            alert('제목과 본문을 입력해주세요!');
+        if(!keyword) {
+            alert('원하는 뉴스 주제를 입력해주세요!');
             return;
         }
         
-        document.getElementById('resTitle').innerText = title;
-        document.getElementById('resContent').innerText = content;
+        // 로딩창 켜기
+        loadingText.style.display = 'block';
+        newsResult.style.display = 'none';
         
-        // 날짜 자동으로 넣기
-        const now = new Date();
-        document.getElementById('resDate').innerText = now.toLocaleString();
-        
-        // 이미지 처리
-        const imgTag = document.getElementById('resImg');
-        if(img) {
-            imgTag.src = img;
-            imgTag.style.display = 'block';
-        } else {
-            imgTag.style.display = 'none';
+        try {
+            const response = await fetch('https://openai.com', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                    'Authorization': `Bearer ${OPENAI_API_KEY}`
+                },
+                body: JSON.stringify({
+                    model: 'gpt-4o-mini',
+                    messages: [
+                        { role: 'system', content: '너는 대한민국 최고의 언론사 기자야. 사용자가 주는 키워드를 바탕으로, 신뢰감 있고 그럴싸한 네이버 뉴스 스타일의 속보 기사를 창작해줘. 출력 형식은 반드시 [제목]과 [본문]을 정확히 나누어 작성해주고, 첫 줄은 "제목: "으로 시작하고 본문은 "본문: "으로 시작하게 해줘.' },
+                        { role: 'user', content: `주제 키워드: ${keyword}` }
+                    ],
+                    temperature: 0.7
+                })
+            });
+
+            const data = await response.json();
+            const aiResponse = data.choices[0].message.content;
+            
+            // AI가 준 답변에서 제목과 본문 분리하기
+            const titleMatch = aiResponse.match(/제목:\s*(.*)/);
+            const contentMatch = aiResponse.match(/본문:\s*([\s\(\S\)]*)/);
+            
+            const finalTitle = titleMatch ? titleMatch[1] : `[속보] ${keyword} 관련 긴급 뉴스 보도`;
+            const finalContent = contentMatch ? contentMatch[1] : aiResponse;
+
+            // 결과 화면에 꼽아주기
+            document.getElementById('resTitle').innerText = finalTitle;
+            document.getElementById('resContent').innerText = finalContent;
+            
+            // 날짜 자동으로 넣기
+            const now = new Date();
+            document.getElementById('resDate').innerText = now.toLocaleString();
+            
+            // 결과창 보여주기
+            loadingText.style.display = 'none';
+            newsResult.style.display = 'block';
+            
+            // 화면 아래로 스크롤
+            window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
+
+        } catch (error) {
+            console.error(error);
+            alert('AI 연동 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요!');
+            loadingText.style.display = 'none';
         }
-        
-        // 결과창 보여주기
-        document.getElementById('newsResult').style.display = 'block';
-        
-        // 생성 후 화면 아래로 부드럽게 스크롤
-        window.scrollTo({ top: document.body.scrollHeight, behavior: 'smooth' });
     }
 </script>
 
