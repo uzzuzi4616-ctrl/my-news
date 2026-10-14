@@ -1,1 +1,11 @@
-{ "name": "my-news", "version": "1.0.0", "private": true, "type": "module", "scripts": { "start": "node server.js" }, "dependencies": { "openai": "^5.0.0" } }
+```json
+{
+  "name": "my-news",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  }
+}
+```
