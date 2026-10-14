@@ -1,4 +1,4 @@
-```json
+json
 {
   "name": "my-news",
   "version": "1.0.0",
@@ -8,4 +8,3 @@
     "start": "node server.js"
   }
 }
-```
