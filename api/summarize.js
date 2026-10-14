@@ -1,4 +1,4 @@
-```javascript
+<javascript>
 export default async function handler(req, res) {
   // POST 요청만 허용
   if (req.method !== "POST") {
@@ -203,4 +203,4 @@ export default async function handler(req, res) {
     });
   }
 }
-```
+</<javascript>
